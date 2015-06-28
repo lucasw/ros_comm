@@ -186,6 +186,9 @@ private:
 
     bool pause_for_topics_;
 
+    bool skip_time_;
+    ros::Time new_time_;
+
     ros::WallTime paused_time_;
 
     std::vector<boost::shared_ptr<Bag> >  bags_;

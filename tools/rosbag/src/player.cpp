@@ -105,7 +105,8 @@ Player::Player(PlayerOptions const& options) :
     terminal_modified_(false),
     // If we were given a list of topics to pause on, then go into that mode
     // by default (it can be toggled later via 't' from the keyboard).
-    pause_for_topics_(options_.pause_topics.size() > 0)
+    pause_for_topics_(options_.pause_topics.size() > 0),
+    skip_time_(false)
 {
 }
 
@@ -201,7 +202,10 @@ void Player::publish() {
     options_.advertise_sleep.sleep();
     std::cout << " done." << std::endl;
 
-    std::cout << std::endl << "Hit space to toggle paused, or 's' to step." << std::endl;
+    std::cout << std::endl << "Hit space to toggle paused, or 's' to step, "
+        << "'['/']' to decrease/increase playback speed, backspace to "
+        << "set speed to normal, ','/'.' to skip backwards/forwards "
+        << "in time 5 seconds." << std::endl;
 
     paused_ = options_.start_paused;
 
@@ -211,10 +215,18 @@ void Player::publish() {
         time_translator_.setTimeScale(options_.time_scale);
 
         start_time_ = view.begin()->getTime();
-        time_translator_.setRealStartTime(start_time_);
+        ros::Time init_time = start_time_;
+        if (skip_time_)
+        {
+            skip_time_ = false;
+            if (new_time_ > start_time_)
+                init_time = new_time_;
+        }
+
+        time_translator_.setRealStartTime(init_time);
         bag_length_ = view.getEndTime() - view.getBeginTime();
 
-        time_publisher_.setTime(start_time_);
+        time_publisher_.setTime(init_time);
 
         ros::WallTime now_wt = ros::WallTime::now();
         time_translator_.setTranslatedStartTime(ros::Time(now_wt.sec, now_wt.nsec));
@@ -233,8 +245,19 @@ void Player::publish() {
             if (!node_handle_.ok())
                 break;
 
+            // Skip past initial messages, this is needed
+            // when the skip forward/backward keys are used
+            if (m.getTime() < init_time)
+                continue;
+
             doPublish(m);
+
+            if (skip_time_)
+                break;
         }
+
+        if (skip_time_)
+            continue;
 
         if (options_.keep_alive)
             while (node_handle_.ok())
@@ -363,6 +386,33 @@ void Player::doPublish(MessageInstance const& m) {
                     printTime();
                     return;
                 }
+                break;
+            case ']':
+                options_.time_scale *= 1.1;
+                ROS_INFO_STREAM("time scale " << options_.time_scale);
+                time_publisher_.setTimeScale(options_.time_scale);
+                time_translator_.setTimeScale(options_.time_scale);
+                break;
+            case '[':
+                options_.time_scale *= 0.9;
+                ROS_INFO_STREAM("time scale " << options_.time_scale);
+                time_publisher_.setTimeScale(options_.time_scale);
+                time_translator_.setTimeScale(options_.time_scale);
+                break;
+            case 127: // backspace (or delete?)
+                // TBD or set time scale to rate set at command line?
+                options_.time_scale = 1.0;
+                ROS_INFO_STREAM("time scale " << options_.time_scale);
+                time_publisher_.setTimeScale(options_.time_scale);
+                time_translator_.setTimeScale(options_.time_scale);
+                break;
+            case ',':
+                skip_time_ = true;
+                new_time_ = time_publisher_.getTime() - ros::Duration(5.0);
+                break;
+            case '.':
+                skip_time_ = true;
+                new_time_ = time_publisher_.getTime() + ros::Duration(5.0);
                 break;
             case 't':
                 pause_for_topics_ = !pause_for_topics_;
