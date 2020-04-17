@@ -241,6 +241,12 @@ class RosStreamHandler(logging.Handler):
             self._get_time = None
             self._is_wallclock = None
 
+    def _get_shortfile(self, pathname, maxlen=30):
+        prefix = '...'
+        if len(pathname) + len(prefix) > maxlen:
+            return prefix + pathname[-maxlen:]
+        return pathname
+
     def emit(self, record):
         level, color = _logging_to_rospy_names[record.levelname]
         record_message = _defaultFormatter.format(record)
@@ -261,6 +267,7 @@ class RosStreamHandler(logging.Handler):
         msg = msg.replace('${thread}', str(record.thread))
         msg = msg.replace('${logger}', str(record.name))
         msg = msg.replace('${file}', str(record.pathname))
+        msg = msg.replace('${shortfile}', str(self._get_shortfile(record.pathname)))
         msg = msg.replace('${line}', str(record.lineno))
         msg = msg.replace('${function}', str(record.funcName))
         try:
