@@ -177,6 +177,12 @@ class RosStreamHandler(logging.Handler):
             self._get_time = None
             self._is_wallclock = None
 
+    def _get_shortfile(self, pathname, maxlen=30):
+        prefix = '...'
+        if len(pathname) + len(prefix) > maxlen:
+            return prefix + pathname[-maxlen:]
+        return pathname
+
     def emit(self, record):
         level, color = _logging_to_rospy_names[record.levelname]
         record_message = _defaultFormatter.format(record)
@@ -184,10 +190,11 @@ class RosStreamHandler(logging.Handler):
             'ROSCONSOLE_FORMAT', '[${severity}] [${time}]: ${message}')
         msg = msg.replace('${severity}', level)
         msg = msg.replace('${message}', str(record_message))
-        msg = msg.replace('${walltime}', '%f' % time.time())
+        msg = msg.replace('${walltime}', '%.3f' % time.time())
         msg = msg.replace('${thread}', str(record.thread))
         msg = msg.replace('${logger}', str(record.name))
         msg = msg.replace('${file}', str(record.pathname))
+        msg = msg.replace('${shortfile}', str(self._get_shortfile(record.pathname)))
         msg = msg.replace('${line}', str(record.lineno))
         msg = msg.replace('${function}', str(record.funcName))
         try:
@@ -196,9 +203,9 @@ class RosStreamHandler(logging.Handler):
         except ImportError:
             node_name = '<unknown_node_name>'
         msg = msg.replace('${node}', node_name)
-        time_str = '%f' % time.time()
+        time_str = '%.3f' % time.time()
         if self._get_time is not None and not self._is_wallclock():
-            time_str += ', %f' % self._get_time()
+            time_str += ', %.3f' % self._get_time()
         msg = msg.replace('${time}', time_str)
         msg += '\n'
         if record.levelno < logging.WARNING:
