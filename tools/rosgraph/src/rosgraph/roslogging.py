@@ -227,6 +227,59 @@ _logging_to_rospy_names = {
 _color_reset = '\033[0m'
 _defaultFormatter = logging.Formatter()
 
+def get_shortfile(pathname, maxlen=30):
+    prefix = '...'
+    if len(pathname) + len(prefix) > maxlen:
+        return prefix + pathname[-maxlen:]
+    return pathname
+
+def format_msg(record_message, thread, name, pathname,
+               lineno, funcName, levelname, levelno,
+               extra_time):
+    level, color = _logging_to_rospy_names[levelname]
+    msg = os.environ.get(
+        'ROSCONSOLE_FORMAT', '[${severity}] [${time}]: ${message}')
+    msg = msg.replace('${severity}', level)
+    msg = msg.replace('${message}', str(record_message))
+    msg = msg.replace('${walltime}', '%.3f' % time.time())
+
+    while '${walltime:' in msg:
+        tag_end_index = msg.index('${walltime:') + len('${walltime:')
+        time_format = msg[tag_end_index: msg.index('}', tag_end_index)]
+        time_str = time.strftime(time_format)
+        msg = msg.replace('${walltime:' + time_format + '}', time_str)
+
+    msg = msg.replace('${thread}', str(thread))
+    msg = msg.replace('${logger}', str(name))
+    msg = msg.replace('${file}', str(pathname))
+    msg = msg.replace('${shortfile}', str(get_shortfile(pathname)))
+    msg = msg.replace('${line}', str(lineno))
+    msg = msg.replace('${function}', str(funcName))
+    try:
+        from rospy import get_name
+        node_name = get_name()
+    except ImportError:
+        node_name = '<unknown_node_name>'
+    msg = msg.replace('${node}', node_name)
+    time_str = '%.3f' % time.time()
+    if extra_time is not None:
+        time_str += ', %.3f' % extra_time
+    msg = msg.replace('${time}', time_str)
+
+    while '${time:' in msg:
+        tag_end_index = msg.index('${time:') + len('${time:')
+        time_format = msg[tag_end_index: msg.index('}', tag_end_index)]
+        time_str = time.strftime(time_format)
+
+        if self._get_time is not None and not self._is_wallclock():
+            time_str += ', %f' % self._get_time()
+
+        msg = msg.replace('${time:' + time_format + '}', time_str)
+
+    msg += '\n'
+    return msg, color
+
+
 class RosStreamHandler(logging.Handler):
     def __init__(self, colorize=True, stdout=None, stderr=None):
         super(RosStreamHandler, self).__init__()
@@ -241,59 +294,12 @@ class RosStreamHandler(logging.Handler):
             self._get_time = None
             self._is_wallclock = None
 
-    def _get_shortfile(self, pathname, maxlen=30):
-        prefix = '...'
-        if len(pathname) + len(prefix) > maxlen:
-            return prefix + pathname[-maxlen:]
-        return pathname
-
     def emit(self, record):
-        level, color = _logging_to_rospy_names[record.levelname]
         record_message = _defaultFormatter.format(record)
-        msg = os.environ.get(
-            'ROSCONSOLE_FORMAT', '[${severity}] [${time}]: ${message}')
-        msg = msg.replace('${severity}', level)
-        msg = msg.replace('${message}', str(record_message))
-
-        # walltime tag
-        msg = msg.replace('${walltime}', '%f' % time.time())  # for performance reasons
-
-        while '${walltime:' in msg:
-            tag_end_index = msg.index('${walltime:') + len('${walltime:')
-            time_format = msg[tag_end_index: msg.index('}', tag_end_index)]
-            time_str = time.strftime(time_format)
-            msg = msg.replace('${walltime:' + time_format + '}', time_str)
-
-        msg = msg.replace('${thread}', str(record.thread))
-        msg = msg.replace('${logger}', str(record.name))
-        msg = msg.replace('${file}', str(record.pathname))
-        msg = msg.replace('${shortfile}', str(self._get_shortfile(record.pathname)))
-        msg = msg.replace('${line}', str(record.lineno))
-        msg = msg.replace('${function}', str(record.funcName))
-        try:
-            from rospy import get_name
-            node_name = get_name()
-        except ImportError:
-            node_name = '<unknown_node_name>'
-        msg = msg.replace('${node}', node_name)
-
-        # time tag
-        time_str = '%f' % time.time()
-        if self._get_time is not None and not self._is_wallclock():
-            time_str += ', %f' % self._get_time()
-        msg = msg.replace('${time}', time_str)   # for performance reasons
-
-        while '${time:' in msg:
-            tag_end_index = msg.index('${time:') + len('${time:')
-            time_format = msg[tag_end_index: msg.index('}', tag_end_index)]
-            time_str = time.strftime(time_format)
-
-            if self._get_time is not None and not self._is_wallclock():
-                time_str += ', %f' % self._get_time()
-
-            msg = msg.replace('${time:' + time_format + '}', time_str)
-
-        msg += '\n'
+        extra_time = self._get_time() if self._get_time is not None and not self._is_wallclock() else None
+        msg, color = format_msg(record_message, record.thread, record.name, record.pathname,
+                                record.lineno, record.funcName, record.levelname, record.levelno,
+                                extra_time)
         if record.levelno < logging.WARNING:
             self._write(self._stdout, msg, color)
         else:
