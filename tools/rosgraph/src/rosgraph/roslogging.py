@@ -276,7 +276,6 @@ def format_msg(record_message, thread, name, pathname,
 
         msg = msg.replace('${time:' + time_format + '}', time_str)
 
-    msg += '\n'
     return msg, color
 
 
@@ -300,6 +299,7 @@ class RosStreamHandler(logging.Handler):
         msg, color = format_msg(record_message, record.thread, record.name, record.pathname,
                                 record.lineno, record.funcName, record.levelname, record.levelno,
                                 extra_time)
+        msg += '\n'
         if record.levelno < logging.WARNING:
             self._write(self._stdout, msg, color)
         else:
