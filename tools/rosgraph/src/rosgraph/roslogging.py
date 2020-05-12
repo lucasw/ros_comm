@@ -40,6 +40,7 @@ import time
 import logging
 import logging.config
 import inspect
+import rospy
 
 import yaml
 
@@ -236,12 +237,14 @@ def format_msg(record_message, thread, name, pathname,
                lineno, funcName, levelname, levelno,
                extra_time, start_time):
     level, color = _logging_to_rospy_names[levelname]
+    cur_wall_time = time.time()
+    # TODO(lucasw) how does non wall time get into here?
+    cur_time = rospy.Time.from_sec(cur_wall_time)
     msg = os.environ.get(
         'ROSCONSOLE_FORMAT', '[${severity}] [${time}]: ${message}')
     msg = msg.replace('${severity}', level)
     msg = msg.replace('${message}', str(record_message))
-    msg = msg.replace('${walltime}', '%.3f' % time.time())
-    msg = msg.replace('${elapsedtime}', '%.3f' % (time - start_time).time())
+    msg = msg.replace('${walltime}', '%.3f' % cur_wall_time)
     msg = msg.replace('${thread}', str(thread))
     msg = msg.replace('${logger}', str(name))
     msg = msg.replace('${file}', str(pathname))
@@ -254,10 +257,11 @@ def format_msg(record_message, thread, name, pathname,
     except ImportError:
         node_name = '<unknown_node_name>'
     msg = msg.replace('${node}', node_name)
-    time_str = '%.3f' % time.time()
+    time_str = '%.3f' % cur_time.to_sec()
     if extra_time is not None:
         time_str += ', %.3f' % extra_time
     msg = msg.replace('${time}', time_str)
+    msg = msg.replace('${elapsedtime}', '%.3f' % (cur_time - start_time).to_sec())
     return msg, color
 
 class RosStreamHandler(logging.Handler):
@@ -266,11 +270,8 @@ class RosStreamHandler(logging.Handler):
         self._stdout = stdout or sys.stdout
         self._stderr = stderr or sys.stderr
         self._colorize = colorize
-        # There is a race condition, but for now the race means the start times will be
-        # close to each other
-        if not rospy.has_param("/start_time"):
-            rospy.set_param("/start_time", rospy.Time.now())
-        self._start_time = rospy.get_param("/start_time")
+        self._start_time = None
+
         try:
             from rospy.rostime import get_time, is_wallclock
             self._get_time = get_time
@@ -280,6 +281,17 @@ class RosStreamHandler(logging.Handler):
             self._is_wallclock = None
 
     def emit(self, record):
+        # There is a race condition, but for now the race means the start times will be
+        # close to each other
+        if self._start_time is None:
+            t0 = time.time()
+            self._start_time = rospy.Time.from_sec(t0)
+            if rospy.has_param("/start_time"):
+                start_secs = rospy.get_param("/start_time", self._start_time.to_sec())
+                self._start_time = rospy.Time().from_sec(start_secs)
+            else:
+                rospy.set_param("/start_time", self._start_time.to_sec())
+
         record_message = _defaultFormatter.format(record)
         extra_time = self._get_time() if self._get_time is not None and not self._is_wallclock() else None
         msg, color = format_msg(record_message, record.thread, record.name, record.pathname,
