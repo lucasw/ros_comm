@@ -206,10 +206,12 @@ struct TimeToken : public Token
     ss << ros::WallTime::now();
     if (ros::Time::isValid() && ros::Time::isSimTime())
     {
-      ss << ", " << ros::Time::now();
+      ss << ", " << std::fixed << std::setprecision(decimals_) << ros::Time::now().toSec();
     }
     return ss.str();
   }
+
+  static const size_t decimals_ = 3;
 };
 
 struct WallTimeToken : public Token
@@ -217,9 +219,11 @@ struct WallTimeToken : public Token
   virtual std::string getString(void*, ::ros::console::Level, const char*, const char*, const char*, int)
   {
     std::stringstream ss;
-    ss << ros::WallTime::now();
+    ss << std::fixed << std::setprecision(decimals_) << ros::WallTime::now().toSec();
     return ss.str();
   }
+
+  static const size_t decimals_ = 3;
 };
 
 struct ThreadToken : public Token
@@ -229,6 +233,20 @@ struct ThreadToken : public Token
     std::stringstream ss;
     ss << boost::this_thread::get_id();
     return ss.str();
+  }
+};
+
+struct ShortFileToken : public Token
+{
+  virtual std::string getString(void*, ::ros::console::Level, const char*, const char* file, const char*, int)
+  {
+    const size_t max_len = 30;
+    const size_t num_chars = strlen(file);
+    if (num_chars > max_len + 3)
+    {
+       return "..." + std::string(&file[num_chars - max_len]);
+    }
+    return file;
   }
 };
 
@@ -300,6 +318,10 @@ TokenPtr createTokenFromType(const std::string& type)
   else if (type == "file")
   {
     return TokenPtr(boost::make_shared<FileToken>());
+  }
+  else if (type == "shortfile")
+  {
+    return TokenPtr(boost::make_shared<ShortFileToken>());
   }
   else if (type == "line")
   {
