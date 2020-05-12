@@ -175,11 +175,11 @@ struct SeverityToken : public Token
     }
     else if (level == levels::Warn)
     {
-      return " WARN";
+      return "WARN";
     }
     else if (level == levels::Info)
     {
-      return " INFO";
+      return "INFO";
     }
     else if (level == levels::Debug)
     {
@@ -206,7 +206,8 @@ struct TimeToken : public Token
     ss << ros::WallTime::now();
     if (ros::Time::isValid() && ros::Time::isSimTime())
     {
-      ss << ", " << std::fixed << std::setprecision(decimals_) << ros::Time::now().toSec();
+      // ss << ", " << std::fixed << std::setprecision(decimals_) << ros::Time::now().toSec();
+      ss << ", " << std::setprecision(decimals_) << ros::Time::now().toSec();
     }
     return ss.str();
   }
@@ -219,7 +220,8 @@ struct WallTimeToken : public Token
   virtual std::string getString(void*, ::ros::console::Level, const char*, const char*, const char*, int)
   {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(decimals_) << ros::WallTime::now().toSec();
+    // ss << std::fixed << std::setprecision(decimals_) << ros::WallTime::now().toSec();
+    ss << std::setprecision(decimals_) << ros::WallTime::now().toSec();
     return ss.str();
   }
 
