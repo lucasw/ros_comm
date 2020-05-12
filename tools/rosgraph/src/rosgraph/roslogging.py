@@ -234,13 +234,14 @@ def get_shortfile(pathname, maxlen=30):
 
 def format_msg(record_message, thread, name, pathname,
                lineno, funcName, levelname, levelno,
-               extra_time):
+               extra_time, start_time):
     level, color = _logging_to_rospy_names[levelname]
     msg = os.environ.get(
         'ROSCONSOLE_FORMAT', '[${severity}] [${time}]: ${message}')
     msg = msg.replace('${severity}', level)
     msg = msg.replace('${message}', str(record_message))
     msg = msg.replace('${walltime}', '%.3f' % time.time())
+    msg = msg.replace('${elapsedtime}', '%.3f' % (time - start_time).time())
     msg = msg.replace('${thread}', str(thread))
     msg = msg.replace('${logger}', str(name))
     msg = msg.replace('${file}', str(pathname))
@@ -265,6 +266,11 @@ class RosStreamHandler(logging.Handler):
         self._stdout = stdout or sys.stdout
         self._stderr = stderr or sys.stderr
         self._colorize = colorize
+        # There is a race condition, but for now the race means the start times will be
+        # close to each other
+        if not rospy.has_param("/start_time"):
+            rospy.set_param("/start_time", rospy.Time.now())
+        self._start_time = rospy.get_param("/start_time")
         try:
             from rospy.rostime import get_time, is_wallclock
             self._get_time = get_time
@@ -278,7 +284,7 @@ class RosStreamHandler(logging.Handler):
         extra_time = self._get_time() if self._get_time is not None and not self._is_wallclock() else None
         msg, color = format_msg(record_message, record.thread, record.name, record.pathname,
                                 record.lineno, record.funcName, record.levelname, record.levelno,
-                                extra_time)
+                                extra_time, self._start_time)
         msg += '\n'
         if record.levelno < logging.WARNING:
             self._write(self._stdout, msg, color)
