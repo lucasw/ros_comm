@@ -253,7 +253,7 @@ def format_msg(record_message, thread, name, pathname,
     msg = msg.replace('${logger}', str(name))
     msg = msg.replace('${file}', str(pathname))
     msg = msg.replace('${shortfile}', str(get_shortfile(pathname)))
-    msg = msg.replace('${line}', str(lineno))
+    msg = msg.replace('${line}', '{:4d}'.format(lineno))
     msg = msg.replace('${function}', str(funcName))
     try:
         from rospy import get_name
