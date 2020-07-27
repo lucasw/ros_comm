@@ -284,6 +284,7 @@ class ROSLaunchChildHandler(ROSLaunchBaseHandler):
             self.pm.shutdown()
             self.pm.join()
             self.pm = None
+            print('shutdown child handler')
         
     def shutdown(self):
         """
