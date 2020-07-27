@@ -77,6 +77,7 @@ class ROSLaunchChild(object):
         self.server_uri = server_uri
         self.child_server = None
         self.pm = None
+        self.exit_code = 0
 
         roslaunch.pmon._init_signal_handlers()
 
@@ -116,6 +117,7 @@ class ROSLaunchChild(object):
             if self.pm:
                 self.pm.shutdown()
                 self.pm.join()
+                self.exit_code = self.pm.exit_code
             if self.child_server:
                 self.child_server.shutdown('roslaunch child complete')
 
@@ -123,3 +125,4 @@ class ROSLaunchChild(object):
         if self.pm:
             self.pm.shutdown()
             self.pm.join()
+            self.exit_code = self.pm.exit_code

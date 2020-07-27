@@ -139,6 +139,8 @@ class ROSLaunchParent(object):
         
         self.config = self.runner = self.server = self.pm = self.remote_runner = None
 
+        self.exit_code = 0
+
     def _load_config(self):
         self.config = roslaunch.config.load_config_default(self.roslaunch_files, self.port,
                 roslaunch_strs=self.roslaunch_strs, verbose=self.verbose)
@@ -270,6 +272,7 @@ class ROSLaunchParent(object):
         if self.pm:
             self.pm.shutdown()
             self.pm.join()
+            self.exit_code = self.pm.exit_code
         
     def start(self, auto_terminate=True):
         """
