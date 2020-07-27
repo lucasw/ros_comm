@@ -217,6 +217,8 @@ def _validate_args(parser, options, args):
 def main(argv=sys.argv):
     options = None
     logger = None
+    exit_code = 0
+
     try:
         from . import rlutil
         parser = _get_optparse()
@@ -270,16 +272,19 @@ def main(argv=sys.argv):
         logger.info("roslaunch env is %s"%os.environ)
             
         if options.child_name:
-            logger.info('starting in child mode')
+            logger.info('starting in child mode {}'.format(options.child_name))
 
             # This is a roslaunch child, spin up client server.
             # client spins up an XML-RPC server that waits for
             # commands and configuration from the server.
             from . import child as roslaunch_child
             c = roslaunch_child.ROSLaunchChild(uuid, options.child_name, options.server_uri)
+            print('########################### child node start {}'.format(options.child_name))
             c.run()
+            exit_code = c.exit_code
+            logger.warn('child node {} done {}'.format(options.child_name, exit_code))
         else:
-            logger.info('starting in server mode')
+            print('########################### starting in server mode')
 
             # #1491 change terminal name
             if not options.disable_title:
@@ -303,8 +308,11 @@ def main(argv=sys.argv):
                     is_core=options.core, port=options.port, local_only=options.local_only,
                     verbose=options.verbose, force_screen=options.force_screen,
                     num_workers=options.num_workers, timeout=options.timeout)
+            print('*************************** server node start')
             p.start()
             p.spin()
+            exit_code = p.exit_code
+            print('xxxxxxxxxxxxxxxxxxxxxxxxxxxx ending server mode {}'.format(exit_code))
 
     except RLException as e:
         roslaunch_core.printerrlog(str(e))
@@ -328,6 +336,9 @@ def main(argv=sys.argv):
             try: os.unlink(options.pid_fn)
             except os.error: pass
 
+    print('exiting from main() {}'.format(exit_code))
+    sys.exit(exit_code)
 
+# A normal command line roslaunch doesn't go through here
 if __name__ == '__main__':
     main()
