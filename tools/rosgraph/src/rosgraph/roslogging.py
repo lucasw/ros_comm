@@ -218,11 +218,11 @@ def makedirs_with_parent_perms(p):
             os.chmod(p, s.st_mode)    
 
 _logging_to_rospy_names = {
-    'DEBUG': ('DEBUG', '\033[32m'),
-    'INFO': ('INFO', None),
-    'WARNING': ('WARN', '\033[33m'),
-    'ERROR': ('ERROR', '\033[31m'),
-    'CRITICAL': ('FATAL', '\033[31m')
+    'DEBUG': ('D', '\033[32m'),
+    'INFO': ('I', None),
+    'WARNING': ('W', '\033[33m'),
+    'ERROR': ('E', '\033[31m'),
+    'CRITICAL': ('F', '\033[31m')
 }
 _color_reset = '\033[0m'
 _defaultFormatter = logging.Formatter()
