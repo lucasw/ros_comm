@@ -629,15 +629,15 @@ def _rosnode_cmd_info(argv):
     args = argv[2:]
     parser = OptionParser(usage="usage: %prog info [options] node1 [node2...]",
                           prog=NAME)
-    parser.add_option("-q", "--quiet",
-                      dest="quiet", default=False,
+    parser.add_option("-v", "--verbose",
+                      dest="verbose", default=False,
                       action="store_true",
-                      help="Prints only basic information such as pubs/subs and does not contact nodes for more information")
+                      help="Prints additional basic information such as pubs/subs and and contacts the node for more information")
     (options, args) = parser.parse_args(args)
     if not args:
         parser.error("You must specify at least one node name")        
     for node in args:
-        rosnode_info(node, options.quiet)
+        rosnode_info(node, not options.verbose)
 
 def _rosnode_cmd_machine(argv):
     """
