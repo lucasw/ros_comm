@@ -204,6 +204,7 @@ class TimeSynchronizer(SimpleFilter):
         SimpleFilter.__init__(self)
         self.connectInput(fs)
         self.queue_size = queue_size
+        self.last_added = rospy.Time()
         self.lock = threading.Lock()
         self.enable_reset = reset
 
@@ -214,24 +215,43 @@ class TimeSynchronizer(SimpleFilter):
             f.registerCallback(self.add, q, i_q)
             for i_q, (f, q) in enumerate(zip(fs, self.queues))]
 
-    def add(self, msg, my_queue, my_queue_index=None):
-        self.lock.acquire()
-        now = rospy.Time.now()
+    def add_boiler_plate(self, stamp, now, msg, my_queue, my_queue_index):
         is_simtime = not rospy.rostime.is_wallclock()
         if is_simtime and self.enable_reset and my_queue_index is not None:
             if now < self.latest_stamps[my_queue_index]:
                 rospy.logdebug("Detected jump back in time. Clearing message filter queue")
                 my_queue.clear()
             self.latest_stamps[my_queue_index] = now
-        my_queue[msg.header.stamp] = msg
+        my_queue[stamp] = msg
+
+        # clear all buffers if jump backwards in time is detected
+        now = rospy.Time.now()
+        if now < self.last_added:
+            rospy.loginfo("TimeSynchronizer: Detected jump back in time. Clearing buffer.")
+            for q in self.queues:
+                q.clear()
+        self.last_added = now
+
         while len(my_queue) > self.queue_size:
             del my_queue[min(my_queue)]
 
         if is_simtime and self.enable_reset:
             if max(self.latest_stamps) != now:
-                self.lock.release()
+                return False
+
+        return True
+
+    def add(self, msg, my_queue, my_queue_index=None):
+        stamp = msg.header.stamp
+        now = rospy.Time.now()
+
+        with self.lock:
+            if not self.add_boiler_plate(stamp, now, msg, my_queue, my_queue_index):
                 return
 
+            self.finish_add()
+
+    def finish_add(self):
         # common is the set of timestamps that occur in all queues
         common = reduce(set.intersection, [set(q) for q in self.queues])
         for t in sorted(common):
@@ -240,7 +260,6 @@ class TimeSynchronizer(SimpleFilter):
             self.signalMessage(*msgs)
             for q in self.queues:
                 del q[t]
-        self.lock.release()
 
 class ApproximateTimeSynchronizer(TimeSynchronizer):
 
@@ -259,7 +278,6 @@ class ApproximateTimeSynchronizer(TimeSynchronizer):
         TimeSynchronizer.__init__(self, fs, queue_size)
         self.slop = rospy.Duration.from_sec(slop)
         self.allow_headerless = allow_headerless
-        self.last_added = rospy.Time()
         self.enable_reset = reset
 
     def add(self, msg, my_queue, my_queue_index=None):
@@ -273,31 +291,15 @@ class ApproximateTimeSynchronizer(TimeSynchronizer):
         else:
             stamp = msg.header.stamp
 
-        self.lock.acquire()
         now = rospy.Time.now()
-        is_simtime = not rospy.rostime.is_wallclock()
-        if is_simtime and self.enable_reset and my_queue_index is not None:
-            if now < self.latest_stamps[my_queue_index]:
-                rospy.logdebug("Detected jump back in time. Clearing message filter queue")
-                my_queue.clear()
-            self.latest_stamps[my_queue_index] = now
-        my_queue[stamp] = msg
 
-        # clear all buffers if jump backwards in time is detected
-        now = rospy.Time.now()
-        if now < self.last_added:
-            rospy.loginfo("ApproximateTimeSynchronizer: Detected jump back in time. Clearing buffer.")
-            for q in self.queues:
-                q.clear()
-        self.last_added = now
-
-        while len(my_queue) > self.queue_size:
-            del my_queue[min(my_queue)]
-
-        if is_simtime and self.enable_reset:
-            if max(self.latest_stamps) != now:
-                self.lock.release()
+        with self.lock:
+            if not self.add_boiler_plate(stamp, now, msg, my_queue, my_queue_index):
                 return
+
+            self.finish_add(stamp, my_queue_index)
+
+    def finish_add(self, stamp, my_queue_index):
         # self.queues = [topic_0 {stamp: msg}, topic_1 {stamp: msg}, ...]
         if my_queue_index is None:
             search_queues = self.queues
@@ -314,7 +316,6 @@ class ApproximateTimeSynchronizer(TimeSynchronizer):
                     continue  # far over the slop
                 topic_stamps.append((s, stamp_delta))
             if not topic_stamps:
-                self.lock.release()
                 return
             topic_stamps = sorted(topic_stamps, key=lambda x: x[1])
             stamps.append(topic_stamps)
@@ -331,4 +332,3 @@ class ApproximateTimeSynchronizer(TimeSynchronizer):
                 for q,t in qt:
                     del q[t]
                 break  # fast finish after the synchronization
-        self.lock.release()
