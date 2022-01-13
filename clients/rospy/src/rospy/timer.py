@@ -48,7 +48,7 @@ class Rate(object):
     """
     Convenience class for sleeping in a loop at a specified rate
     """
-    
+    # TODO(lucasw) set reset=True by default when use_simtime is True
     def __init__(self, hz, reset=False):
         """
         Constructor.
@@ -191,7 +191,7 @@ class Timer(threading.Thread):
     """
     Convenience class for calling a callback at a specified rate
     """
-
+    # TODO(lucasw) set reset=True by default when use_simtime is True
     def __init__(self, period, callback, oneshot=False, reset=False):
         """
         Constructor.
