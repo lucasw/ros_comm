@@ -45,8 +45,6 @@ catkin_add_gtest(test_client
   ../src/XmlRpcUtil.cpp
   ../src/XmlRpcDispatch.cpp
   ../src/XmlRpcSource.cpp
-  ../libb64/src/cdecode.c
-  ../libb64/src/cencode.c
 )
 if(WIN32)
   # build everything from source, undefine ROS_BUILD_SHARED_LIBS to eliminate the dllimport/dllexport attributes
@@ -54,7 +52,7 @@ if(WIN32)
 endif()
 
 if(TARGET test_client)
-  target_link_libraries(test_client mock_socket ${catkin_LIBRARIES})
+  target_link_libraries(test_client mock_socket b64 ${catkin_LIBRARIES})
   if(WIN32)
     target_link_libraries(test_client ws2_32)
   endif()
@@ -65,8 +63,6 @@ catkin_add_gtest(test_dispatch
   ../src/XmlRpcDispatch.cpp
   ../src/XmlRpcSource.cpp
   ../src/XmlRpcUtil.cpp
-  ../libb64/src/cdecode.c
-  ../libb64/src/cencode.c
 )
 if(WIN32)
   # build everything from source, undefine ROS_BUILD_SHARED_LIBS to eliminate the dllimport/dllexport attributes
@@ -74,7 +70,7 @@ if(WIN32)
 endif()
 
 if(TARGET test_dispatch)
-  target_link_libraries(test_dispatch mock_socket ${catkin_LIBRARIES})
+  target_link_libraries(test_dispatch mock_socket b64 ${catkin_LIBRARIES})
   if(WIN32)
     target_link_libraries(test_dispatch ws2_32)
   endif()
