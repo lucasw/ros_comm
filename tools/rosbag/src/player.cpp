@@ -299,8 +299,11 @@ void Player::publish() {
         if (skip_time_)
         {
             skip_time_ = false;
+            ROS_INFO_STREAM("skipping to time " << (new_time_ - start_time_).toSec());
             if (new_time_ > start_time_)
+            {
                 init_time = new_time_;
+            }
         }
 
         time_translator_.setRealStartTime(init_time);
@@ -314,7 +317,7 @@ void Player::publish() {
         ros::WallTime now_wt = ros::WallTime::now();
         time_translator_.setTranslatedStartTime(ros::Time(now_wt.sec, now_wt.nsec));
 
-
+        ROS_INFO_STREAM("time scale " << options_.time_scale);
         time_publisher_.setTimeScale(options_.time_scale);
         if (options_.bag_time)
             time_publisher_.setPublishFrequency(options_.bag_time_frequency);
@@ -324,19 +327,44 @@ void Player::publish() {
         paused_time_ = now_wt;
 
         // Call do-publish for each message
+        size_t count = 0;
+        size_t skip_count = 0;
         for (const MessageInstance& m : view) {
             if (!node_handle_.ok())
                 break;
 
+            if (count == 0)
+            {
+              ROS_INFO_STREAM_THROTTLE(1.0, "elapsed time to about to skip messages: "
+                  << (ros::WallTime::now() - now_wt).toSec() << ", skip time " << skip_time_);
+            }
+
             // Skip past initial messages, this is needed
             // when the skip forward/backward keys are used
+            // TODO(lucasw) this takes a long time the further into the view teh init_time is
             if (m.getTime() < init_time)
+            {
+                ++skip_count;
                 continue;
+            }
+
+            if (count == 0)
+            {
+              ROS_INFO_STREAM_THROTTLE(1.0, "elapsed time to first message: "
+                  << (ros::WallTime::now() - now_wt).toSec()
+                  << ", skip time " << skip_time_
+                  << ", skipped " << skip_count << " messages");
+            }
 
             doPublish(m);
 
             if (skip_time_)
+            {
+                // TODO(lucasw) need to break out of playback to skip backwards
+                // - but why forwards?
                 break;
+            }
+            ++count;
         }
 
         if (skip_time_)
@@ -877,6 +905,9 @@ void TimePublisher::runClock(const ros::WallDuration& duration)
         ros::WallTime t = ros::WallTime::now();
         ros::WallTime done = t + duration;
 
+        if (std::abs((wc_horizon_ - t).toSec()) > 0.2) {
+          ROS_INFO_STREAM("wall clock horizon - cur wall time " << (wc_horizon_ - t).toSec());
+        }
         while (t < done && t < wc_horizon_)
         {
             ros::WallDuration leftHorizonWC = wc_horizon_ - t;
@@ -902,6 +933,7 @@ void TimePublisher::runClock(const ros::WallDuration& duration)
             if (target > next_pub_)
               target = next_pub_;
 
+            // ROS_INFO_STREAM("sleep for " << (target - t).toSec() << " wall-clock seconds");
             ros::WallTime::sleepUntil(target);
 
             t = ros::WallTime::now();
@@ -931,10 +963,9 @@ void TimePublisher::runClock(const ros::WallDuration& duration)
 
 void TimePublisher::stepClock()
 {
+    current_ = horizon_;
     if (do_publish_)
     {
-        current_ = horizon_;
-
         rosgraph_msgs::Clock pub_msg;
 
         pub_msg.clock = current_;
@@ -942,8 +973,6 @@ void TimePublisher::stepClock()
 
         ros::WallTime t = ros::WallTime::now();
         next_pub_ = t + wall_step_;
-    } else {
-        current_ = horizon_;
     }
 }
 
