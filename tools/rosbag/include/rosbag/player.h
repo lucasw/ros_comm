@@ -216,6 +216,9 @@ private:
     ros::Subscriber rate_control_sub_;
     ros::Time last_rate_control_;
 
+    bool skip_time_ = false;
+    ros::Time new_time_;
+
     ros::WallTime paused_time_;
 
     std::vector<boost::shared_ptr<Bag> >  bags_;
