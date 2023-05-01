@@ -67,12 +67,15 @@ class RospyLogger(logging.getLoggerClass()):
         )
 
 
-    def findCaller(self, stack_info=False, stacklevel=1):
+    def findCaller(self, stack_info=False, stacklevel=3):
         """
         Find the stack frame of the caller so that we can note the source
         file name, line number, and function name with class name if possible.
         """
-
+        # print(stacklevel)
+        # TODO(lucasw) this is going to mess up some callers, but makes normal loginfos work
+        if stacklevel == 1:
+            stacklevel=3
 
         f = logging.currentframe()
         #On some versions of IronPython, currentframe() returns None if
