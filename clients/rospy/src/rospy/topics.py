@@ -872,6 +872,7 @@ class Publisher(Topic):
         @raise ROSSerializationException: If unable to serialize
         message. This is usually a type error with one of the fields.
         """
+        # print(f"publish {self.resolved_name}")
         if self.impl is None:
             raise ROSException("publish() to an unregistered() handle")
         if not is_initialized():
@@ -904,6 +905,13 @@ class _PublisherImpl(_TopicImpl):
             self.buff = StringIO()
         else:
             self.buff = BytesIO()
+
+        from rospy.client import _zenoh_session as zenoh_session
+        # TODO(lucasw) get full topic
+        zenoh_key = self.resolved_name.lstrip("/")
+        rospy.loginfo(f"{self.resolved_name} -> {zenoh_key}")
+        self.zenoh_pub = zenoh_session.declare_publisher(zenoh_key)
+
         self.publock = threading.RLock() #for acquire()/release
         self.subscriber_listeners = []
 
@@ -1045,9 +1053,10 @@ class _PublisherImpl(_TopicImpl):
         if self.is_latch:
             self.latch = message
 
-        if not self.has_connections():
-            #publish() falls through
-            return False
+        # TODO(lucasw) replace with zenoh equivalent
+        # # if not self.has_connections():
+        #     #publish() falls through
+        #     return False
 
         if connection_override is None:
             #copy connections so we can iterate safely
@@ -1069,17 +1078,11 @@ class _PublisherImpl(_TopicImpl):
             err_con = []
             data = b.getvalue()
 
-            for c in conns:
-                try:
-                    if not is_shutdown():
-                        c.write_data(data)
-                except TransportTerminated as e:
-                    logdebug("publisher connection to [%s] terminated, see errorlog for details:\n%s"%(c.endpoint_id, traceback.format_exc()))
-                    err_con.append(c)
-                except Exception as e:
-                    # greater severity level
-                    logdebug("publisher connection to [%s] terminated, see errorlog for details:\n%s"%(c.endpoint_id, traceback.format_exc()))
-                    err_con.append(c)
+            # if self.seq % 20 == 0:
+            #     print(f"{self.seq} put {b.getbuffer().nbytes} bytes on '{self.zenoh_pub.key_expr}'")
+            self.zenoh_pub.put(data)
+            # TODO(lucasw) are there any exceptions or errors from the put() to add into err_con?
+            # err_con.append(c)
 
             # reset the buffer and update stats
             self.message_data_sent += b.tell() #STATS
