@@ -36,6 +36,7 @@
 Additional ROS client API methods.
 """
 
+import json
 import logging
 import os
 import socket
@@ -60,6 +61,8 @@ import rospy.rostime
 import rospy.impl.init
 import rospy.impl.rosout 
 import rospy.impl.simtime
+
+import zenoh
 
 TIMEOUT_READY = 15.0 #seconds
 
@@ -186,6 +189,7 @@ def _init_node_params(argv, node_name):
         set_param(rosgraph.names.PRIV_NAME + param_name, param_value)
 
 _init_node_args = None
+_zenoh_session = None
 
 def init_node(name, argv=None, anonymous=False, log_level=None, disable_rostime=False, disable_rosout=False, disable_signals=False, xmlrpc_port=0, tcpros_port=0):
     """
@@ -324,6 +328,15 @@ def init_node(name, argv=None, anonymous=False, log_level=None, disable_rostime=
 
     # upload private params (set via command-line) to parameter server
     _init_node_params(argv, name)
+
+    # TODO(lucasw) pass in args through Config.from_file()
+    zenoh_config = zenoh.Config()
+    rospy.loginfo(f"opening zenoh session with config: {zenoh_config}")
+
+    global _zenoh_session
+    _zenoh_session = zenoh.open(zenoh_config)
+    z_info = _zenoh_session.info()
+    rospy.loginfo(f"peers: {z_info.peers_zid()}, routers: {z_info.routers_zid()} {z_info.session} {z_info.zid()}")
 
     rospy.core.set_initialized(True)
 

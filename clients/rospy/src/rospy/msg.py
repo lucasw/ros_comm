@@ -136,8 +136,6 @@ def serialize_message(b, seq, msg):
     message. This is usually due to a type error with one of the
     fields.
     """
-    start = b.tell()
-    b.seek(start+4) #reserve 4-bytes for length
 
     #update Header object in top-level message
     if getattr(msg.__class__, "_has_header", False):
@@ -153,14 +151,6 @@ def serialize_message(b, seq, msg):
     except struct.error as e:
         raise rospy.exceptions.ROSSerializationException(e)
 
-    #write 4-byte packet length
-    # -4 don't include size of length header
-    end = b.tell()
-    size = end - 4 - start
-    b.seek(start)
-    b.write(struct.pack('<I', size))
-    b.seek(end)
-   
 def deserialize_messages(b, msg_queue, data_class, queue_size=None, max_msgs=None, start=0):
     """
     Read all messages off the buffer 
