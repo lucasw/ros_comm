@@ -285,6 +285,7 @@ void Player::publish() {
         waitForSubscribers();
     }
 
+    size_t count = 0;
     while (true) {
         // Set up our time_translator and publishers
 
@@ -331,6 +332,12 @@ void Player::publish() {
             std::cout << std::endl << "Done." << std::endl;
             break;
         }
+
+        // publishing clock for a while more before looping, let queues empty and tfs expire
+        // TODO(lucasw) make this an option amount
+        const float extra_loop_time = 12.0;
+        doKeepAlive(extra_loop_time);
+        printf("[LOOP %03d\n]", count++);
     }
 
     ros::shutdown();
@@ -612,9 +619,9 @@ void Player::doPublish(MessageInstance const& m) {
 }
 
 
-void Player::doKeepAlive() {
+void Player::doKeepAlive(const float duration) {
     //Keep pushing ourself out in 10-sec increments (avoids fancy math dealing with the end of time)
-    ros::Time const& time = time_publisher_.getTime() + ros::Duration(10.0);
+    ros::Time const& time = time_publisher_.getTime() + ros::Duration(duration);
 
     ros::Time translated = time_translator_.translate(time);
     ros::WallTime horizon = ros::WallTime(translated.sec, translated.nsec);
