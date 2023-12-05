@@ -185,7 +185,7 @@ private:
 
     void doPublish(rosbag::MessageInstance const& m);
 
-    void doKeepAlive();
+    void doKeepAlive(const float duration=10.0);
 
     void printTime();
 
