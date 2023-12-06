@@ -102,6 +102,8 @@ _logger = logging.getLogger('rospy.topics')
 import genpy
 Message = genpy.Message
 
+from zenoh import Reliability, Sample
+
 #######################################################################
 # Base classes for all client-API instantiated pub/sub
 #
@@ -621,6 +623,13 @@ class _SubscriberImpl(_TopicImpl):
             if SubscriberStatisticsLogger.is_enabled() \
             else None
 
+        from rospy.client import _zenoh_session as zenoh_session
+        zenoh_key = self.resolved_name.lstrip("/")
+        rospy.loginfo(f"{self.resolved_name} -> {zenoh_key}")
+        # TODO(lucasw) okay for multiple subscribers in same node on same topic?
+        self.zenoh_sub = zenoh_session.declare_subscriber(zenoh_key, self.zenoh_listener,
+                                                          reliability=Reliability.RELIABLE())
+
     def close(self):
         """close I/O and release resources"""
         _TopicImpl.close(self)
@@ -753,20 +762,24 @@ class _SubscriberImpl(_TopicImpl):
                 logerr("bad callback: %s\n%s"%(cb, traceback.format_exc()))
             else:
                 _logger.warn("during shutdown, bad callback: %s\n%s"%(cb, traceback.format_exc()))
-        
-    def receive_callback(self, msgs, connection):
-        """
-        Called by underlying connection transport for each new message received
-        @param msgs: message data
-        @type msgs: [L{Message}]
-        """
+
+    # TODO(lucasw) previously this was receive_callback called by tcpros- haven't modified
+    # that at all, it's possible something that isn't using ros_comm-zenoh will
+    # trigger the callback which will cause an exception- easy enough to try that out
+    # by starting up a publisher using regular ros_comm.
+    # there's a really bizarre possiblity to use both transports at the same time (!)
+    # at least on the receive side, bring back the old receive_callback and leave it operational
+    def zenoh_listener(self, sample: Sample):
+        msg = self.data_class()
+        msg.deserialize(sample.payload)
+
         # save reference to avoid lock
         callbacks = self.callbacks
-        for msg in msgs:
-            if self.statistics_logger:
-                self.statistics_logger.callback(msg, connection.callerid_pub, connection.stat_bytes)
-            for cb, cb_args in callbacks:
-                self._invoke_callback(msg, cb, cb_args)
+        # TODO(lucasw) need zenoh equivalent
+        # if self.statistics_logger:
+        #     self.statistics_logger.callback(msg, connection.callerid_pub, connection.stat_bytes)
+        for cb, cb_args in callbacks:
+            self._invoke_callback(msg, cb, cb_args)
 
 class SubscribeListener(object):
     """
