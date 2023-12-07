@@ -329,8 +329,14 @@ def init_node(name, argv=None, anonymous=False, log_level=None, disable_rostime=
     # upload private params (set via command-line) to parameter server
     _init_node_params(argv, name)
 
+    # TODO(lucasw) put this in start_node()
     # TODO(lucasw) pass in args through Config.from_file()
-    zenoh_config = zenoh.Config()
+    config_prefix = "__config:="
+    zenoh_config_files = [m.removeprefix(config_prefix) for m in argv if m.startswith(config_prefix)]
+    if zenoh_config_files:
+        zenoh_config = zenoh.Config.from_file(zenoh_config_files[-1])
+    else:
+        zenoh_config = zenoh.Config()
     rospy.loginfo(f"opening zenoh session with config: {zenoh_config}")
 
     global _zenoh_session
