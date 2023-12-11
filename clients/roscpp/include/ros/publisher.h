@@ -35,8 +35,6 @@
 #include <boost/bind/bind.hpp>
 #include <boost/thread/mutex.hpp>
 
-// #include <zenohc.hxx>
-
 namespace ros
 {
   /**

@@ -37,13 +37,10 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
-// TODO(lucasw) including this here results in multiple definition linker errors
-// #include <zenohc.hxx>
 
-namespace zenohc {
-class ShmManager;
-class Session;
-};
+using zenohc::ShmManager;
+using zenohc::Session;
+
 
 namespace ros
 {

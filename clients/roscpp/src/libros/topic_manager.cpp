@@ -45,10 +45,12 @@
 
 #include <ros/console.h>
 
-#include <zenohc.hxx>
+// topic_manager.h has the api, but need the impl here
+namespace zenohc {
+using namespace zenohcxx;
+#include <zenohcxx/impl.hxx>
+}
 
-using zenohc::Session;
-using zenohc::ShmManager;
 using zenohc::expect;
 using zenohc::open;
 
