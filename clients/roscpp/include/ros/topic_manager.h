@@ -37,6 +37,13 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+// TODO(lucasw) including this here results in multiple definition linker errors
+// #include <zenohc.hxx>
+
+namespace zenohc {
+class ShmManager;
+class Session;
+};
 
 namespace ros
 {
@@ -121,16 +128,24 @@ public:
   template<typename M>
   void publish(const std::string& topic, const M& message)
   {
+    std::cout << topic << " topic manager publish\n";
+#if 0
     using namespace serialization;
 
     SerializedMessage m;
     publish(topic, boost::bind(serializeMessage<M>, boost::ref(message)), m);
+#endif
   }
 
+#if 0
   void publish(const std::string &_topic, const boost::function<SerializedMessage(void)>& serfunc, SerializedMessage& m);
+#endif
 
   void incrementSequence(const std::string &_topic);
   bool isLatched(const std::string& topic);
+
+  boost::shared_ptr<zenohc::Session> z_session_;
+  boost::shared_ptr<zenohc::ShmManager> z_manager_;
 
 private:
   /** if it finds a pre-existing subscription to the same topic and of the

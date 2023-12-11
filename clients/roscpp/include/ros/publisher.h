@@ -35,6 +35,8 @@
 #include <boost/bind/bind.hpp>
 #include <boost/thread/mutex.hpp>
 
+// #include <zenohc.hxx>
+
 namespace ros
 {
   /**
@@ -86,12 +88,23 @@ namespace ros
                     impl_->datatype_.c_str(), impl_->md5sum_.c_str());
         }
 
+      std::cout << "publish ptr\n";
+      // publishZenoh(message);
+#if 0
       SerializedMessage m;
       m.type_info = &typeid(M);
       m.message = message;
 
       publish(boost::bind(serializeMessage<M>, boost::ref(*message)), m);
+#endif
     }
+
+#if 0
+    template <typename M>
+      void publishZenoh(const boost::shared_ptr<M>& message) const;
+    template <typename M>
+      void publishZenoh(const M& message) const;
+#endif
 
     /**
      * \brief Publish a message on the topic associated with this Publisher.
@@ -122,8 +135,11 @@ namespace ros
                     impl_->datatype_.c_str(), impl_->md5sum_.c_str());
         }
 
+      std::cout << "publish ref\n";
+#if 0
       SerializedMessage m;
       publish(boost::bind(serializeMessage<M>, boost::ref(message)), m);
+#endif
     }
 
     /**
@@ -180,7 +196,9 @@ namespace ros
               const std::string& datatype, bool latch, const NodeHandle& node_handle,
               const SubscriberCallbacksPtr& callbacks);
 
+#if 0
     void publish(const boost::function<SerializedMessage(void)>& serfunc, SerializedMessage& m) const;
+#endif
     void incrementSequence() const;
 
     class ROSCPP_DECL Impl

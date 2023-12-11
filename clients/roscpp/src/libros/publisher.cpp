@@ -31,6 +31,16 @@
 #include "ros/subscriber_link.h"
 #include "ros/topic_manager.h"
 
+#if 0
+#include <zenohc.hxx>
+
+using zenohc::Encoding;
+using zenohc::EncodingPrefix;
+using zenohc::PublisherPutOptions;
+using zenohc::Shmbuf;
+using zenohc::expect;
+#endif
+
 namespace ros
 {
 
@@ -84,6 +94,44 @@ Publisher::~Publisher()
 {
 }
 
+#if 0
+// TODO(lucasw) this doesn't work, needs to be in header so will be instantiated,
+// but then zenoh include doesn't work, get multiple declarations linker error
+template <typename M> void Publisher::publishZenoh(const boost::shared_ptr<M>& message) const
+{
+  std::cout << "test\n";
+}
+
+template <typename M> void Publisher::publishZenoh(const M& message) const
+{
+  PublisherPutOptions options;
+  Encoding encoding;
+  // TODO(lucasw) is the encoding string sent every single message?
+  // would rather set it somewhere like a rosparam for the entire channel
+  // (though a competing publisher may send the wrong type),
+  // subscriber can get it once and assume all following messages are same type
+  encoding.set_prefix(
+    EncodingPrefix::Z_ENCODING_PREFIX_APP_OCTET_STREAM);  // .set_suffix(
+    // "Image");
+    // this is too long
+    // ros::message_traits::Definition<sensor_msgs::Image>::value());
+  ROS_INFO_STREAM_ONCE(encoding.get_suffix().as_string_view());
+
+  options.set_encoding(encoding);
+
+  const auto length = ros::serialization::serializationLength(message);
+  auto shmbuf = expect<Shmbuf>(TopicManager::instance()->z_manager_->alloc(length));
+
+  ros::serialization::OStream ostream(shmbuf.ptr(), length);
+  ros::serialization::serialize(ostream, message);
+
+  auto payload = shmbuf.into_payload();
+  // TODO(lucasw) this should be in cpp file?
+  TopicManager::instance()->zenoh_pub_.put_owned(std::move(payload), options);
+}
+#endif
+
+#if 0
 void Publisher::publish(const boost::function<SerializedMessage(void)>& serfunc, SerializedMessage& m) const
 {
   if (!impl_)
@@ -105,6 +153,7 @@ void Publisher::publish(const boost::function<SerializedMessage(void)>& serfunc,
     impl_->last_message_ = m;
   }
 }
+#endif
 
 void Publisher::incrementSequence() const
 {

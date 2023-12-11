@@ -40,6 +40,10 @@
 
 #include <vector>
 
+namespace zenohc {
+class Publisher;
+};
+
 namespace ros
 {
 
@@ -145,6 +149,9 @@ public:
   void processPublishQueue();
 
   bool validateHeader(const Header& h, std::string& error_msg);
+
+  // TODO(lucasw) put in Impl
+  boost::shared_ptr<zenohc::Publisher> zenoh_pub_;
 
 private:
   void dropAllConnections();
