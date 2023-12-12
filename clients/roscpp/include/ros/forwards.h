@@ -44,19 +44,7 @@
 #include "exceptions.h"
 #include "ros/datatypes.h"
 
-#if 1
-// This results in redefinition errors even with header guards
-// get only api, don't get impl
-#undef __ZENOHCXX_ZENOHPICO
-#define __ZENOHCXX_ZENOHC
-#include "zenoh.h"
-#include "zenohcxx/base.hxx"
-namespace zenohc {
-using namespace zenohcxx;
-namespace z = zenohc;  // to disambiguate names for code analyzers
-#include <zenohcxx/api.hxx>
-}
-#endif
+#include <zenohc.hxx>
 
 struct ZenohManager
 {

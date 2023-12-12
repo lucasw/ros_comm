@@ -33,14 +33,7 @@
 #include "ros/serialization.h"
 #include <std_msgs/Header.h>
 
-
-// forwards.h has the api, but need the impl here
-#if 1
-namespace zenohc {
-using namespace zenohcxx;
-#include <zenohcxx/impl.hxx>
-}
-#endif
+#include <zenohc.hxx>
 
 namespace ros
 {

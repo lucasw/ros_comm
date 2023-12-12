@@ -31,11 +31,7 @@
 #include "ros/subscriber_link.h"
 #include "ros/topic_manager.h"
 
-// forwards.h has the api, but need the impl here
-namespace zenohc {
-using namespace zenohcxx;
-#include <zenohcxx/impl.hxx>
-}
+#include <zenohc.hxx>
 
 namespace ros
 {
