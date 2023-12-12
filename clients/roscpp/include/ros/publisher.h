@@ -87,34 +87,22 @@ namespace ros
                     impl_->datatype_.c_str(), impl_->md5sum_.c_str());
         }
 
-      std::cout << "publish ptr\n";
-
-      const size_t length = ros::serialization::serializationLength(*message);
-      std::cout << impl_->topic_ << " " << length << "\n";
+      const auto length = serializationLength(*message);
       auto shmbuf = zenohc::expect<zenohc::Shmbuf>(
           ZenohManager::instance()->shm_manager_->alloc(length));
 
-      ros::serialization::OStream ostream(shmbuf.ptr(), length);
-      ros::serialization::serialize(ostream, *message);
+      OStream ostream(shmbuf.ptr(), length);
+      serialize(ostream, *message);
 
       auto payload = shmbuf.into_payload();
+      // std::cout won't print out length properly
+      ROS_INFO_STREAM(message << " ptr " <<  typeid(M).name() << " " << impl_->topic_ << " "
+        << length << " " << payload.get_payload().get_len());
 
       publishZenoh(payload);
-
-#if 0
-      SerializedMessage m;
-      m.type_info = &typeid(M);
-      m.message = message;
-
-      publish(boost::bind(serializeMessage<M>, boost::ref(*message)), m);
-#endif
     }
 
     void publishZenoh(zenohc::Payload& payload) const;
-#if 0
-    template <typename M>
-      void publishZenoh(const M& message) const;
-#endif
 
     /**
      * \brief Publish a message on the topic associated with this Publisher.
@@ -145,11 +133,19 @@ namespace ros
                     impl_->datatype_.c_str(), impl_->md5sum_.c_str());
         }
 
-      std::cout << "publish ref\n";
-#if 0
-      SerializedMessage m;
-      publish(boost::bind(serializeMessage<M>, boost::ref(message)), m);
-#endif
+      // TODO(lucasw) this crashes after a few publishes
+      const size_t length = ros::serialization::serializationLength(message);
+      auto shmbuf = zenohc::expect<zenohc::Shmbuf>(
+          ZenohManager::instance()->shm_manager_->alloc(length));
+
+      ros::serialization::OStream ostream(shmbuf.ptr(), length);
+      ros::serialization::serialize(ostream, message);
+
+      auto payload = shmbuf.into_payload();
+      ROS_INFO_STREAM(message << " ref " <<  typeid(M).name() << " " << impl_->topic_
+          << " " << length << " " << payload.get_payload().get_len());
+
+      publishZenoh(payload);
     }
 
     /**

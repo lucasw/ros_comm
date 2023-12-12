@@ -122,6 +122,7 @@ public:
   template<typename M>
   void publish(const std::string& topic, const M& message)
   {
+    // ROS_INFO_STREAM goes through here, but nothing else?
     std::cout << topic << " topic manager publish\n";
 #if 0
     using namespace serialization;

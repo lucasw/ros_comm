@@ -90,18 +90,6 @@ Publisher::~Publisher()
 // but then zenoh include doesn't work, get multiple declarations linker error
 void Publisher::publishZenoh(zenohc::Payload& payload) const
 {
-  if (!impl_)
-  {
-    ROS_ASSERT_MSG(false, "Call to publish() on an invalid Publisher (topic [%s])", impl_->topic_.c_str());
-    return;
-  }
-
-  if (!impl_->isValid())
-  {
-    ROS_ASSERT_MSG(false, "Call to publish() on an invalid Publisher (topic [%s])", impl_->topic_.c_str());
-    return;
-  }
-
   zenohc::PublisherPutOptions options;
   zenohc::Encoding encoding;
   // TODO(lucasw) is the encoding string sent every single message?
@@ -121,8 +109,6 @@ void Publisher::publishZenoh(zenohc::Payload& payload) const
   pub->zenoh_pub_->put_owned(std::move(payload), options);
 
 #if 0
-  TopicManager::instance()->publish(impl_->topic_, serfunc, m);
-
   if (isLatched()) {
     boost::mutex::scoped_lock lock(impl_->last_message_mutex_);
     impl_->last_message_ = m;
