@@ -8,6 +8,9 @@ endif()
 find_package(catkin COMPONENTS cpp_common message_generation rosconsole roscpp rostime std_msgs xmlrpcpp)
 catkin_python_setup()
 
+find_package(zenohc REQUIRED)
+find_package(zenohcxx REQUIRED)
+
 include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS})
 
@@ -34,27 +37,28 @@ catkin_add_env_hooks(20.transform SHELLS bash DIRECTORY ${CMAKE_CURRENT_SOURCE_D
 
 add_library(topic_tools src/shape_shifter.cpp src/parse.cpp)
 set_target_properties(topic_tools PROPERTIES VERSION ${topic_tools_VERSION} SOVERSION "2d")
-target_link_libraries(topic_tools ${catkin_LIBRARIES})
+target_link_libraries(topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
 
 add_executable(switch_mux src/switch_mux.cpp)
-target_link_libraries(switch_mux topic_tools ${catkin_LIBRARIES})
+target_link_libraries(switch_mux topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
 
 add_executable(mux src/mux.cpp)
-target_link_libraries(mux topic_tools ${catkin_LIBRARIES})
+target_link_libraries(mux topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
 add_dependencies(topic_tools ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 add_executable(demux src/demux.cpp)
-target_link_libraries(demux topic_tools ${catkin_LIBRARIES})
+target_link_libraries(demux topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
+
 add_dependencies(topic_tools ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 add_executable(relay src/relay.cpp)
-target_link_libraries(relay topic_tools ${catkin_LIBRARIES})
+target_link_libraries(relay topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
 
 add_executable(drop src/drop.cpp)
-target_link_libraries(drop topic_tools ${catkin_LIBRARIES})
+target_link_libraries(drop topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
 
 add_executable(throttle src/throttle.cpp)
-target_link_libraries(throttle topic_tools ${catkin_LIBRARIES})
+target_link_libraries(throttle topic_tools ${catkin_LIBRARIES} zenohcxx::zenohc::lib)
 
 install(TARGETS topic_tools
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
