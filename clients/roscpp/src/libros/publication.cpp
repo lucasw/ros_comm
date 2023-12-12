@@ -33,6 +33,15 @@
 #include "ros/serialization.h"
 #include <std_msgs/Header.h>
 
+
+// forwards.h has the api, but need the impl here
+#if 1
+namespace zenohc {
+using namespace zenohcxx;
+#include <zenohcxx/impl.hxx>
+}
+#endif
+
 namespace ros
 {
 
@@ -313,6 +322,16 @@ void Publication::getInfo(XmlRpc::XmlRpcValue& info)
     curr_info[6] = (*c)->getTransportInfo();
     info[info.size()] = curr_info;
   }
+}
+
+void Publication::zenohSetup()
+{
+  auto key = name_;
+  key.erase(key.begin());
+  std::cout << this << " " << this << " " << name_ << " " << key << " with "
+    << ZenohManager::instance()->session_ << "\n";
+  zenoh_pub_ = boost::make_shared<zenohc::Publisher>(
+      zenohc::expect<zenohc::Publisher>(ZenohManager::instance()->session_->declare_publisher(key)));
 }
 
 void Publication::dropAllConnections()

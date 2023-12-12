@@ -45,15 +45,6 @@
 
 #include <ros/console.h>
 
-// topic_manager.h has the api, but need the impl here
-namespace zenohc {
-using namespace zenohcxx;
-#include <zenohcxx/impl.hxx>
-}
-
-using zenohc::expect;
-using zenohc::open;
-
 using namespace XmlRpc; // A battle to be fought later
 using namespace std; // sigh
 
@@ -83,16 +74,7 @@ void TopicManager::start()
   boost::mutex::scoped_lock shutdown_lock(shutting_down_mutex_);
   shutting_down_ = false;
 
-  z_owned_config_t config = z_config_default();
-  z_session_ = boost::make_shared<Session>(expect<Session>(open(std::move(config))));
-  std::cout << "zenoh session " << z_session_ << " " << z_session_->info_zid() << "\n";
-
-  std::ostringstream oss;
-  oss << z_session_->info_zid();
-  // TODO(lucasw) how to manage the buffer size?
-  const size_t buf_sz = 2048 * 1024 * 3 * 4;
-  z_manager_ = boost::make_shared<ShmManager>(expect<ShmManager>(
-      shm_manager_new(*z_session_, oss.str().c_str(), buf_sz)));
+  ZenohManager::instance()->start();
 
   poll_manager_ = PollManager::instance();
   connection_manager_ = ConnectionManager::instance();
@@ -416,11 +398,8 @@ bool TopicManager::advertise(const AdvertiseOptions& ops, const SubscriberCallba
   args[3] = xmlrpc_manager_->getServerURI();
   master::execute("registerPublisher", args, result, payload, true);
 
-  auto key = ops.topic;
-  key.erase(key.begin());
-  std::cout << this << " " << pub << " " << ops.topic << " " << key << " with "  << z_session_ << "\n";
-  pub->zenoh_pub_ = boost::make_shared<zenohc::Publisher>(
-      expect<zenohc::Publisher>(z_session_->declare_publisher(key)));
+  // TODO(lucasw) maybe move to publisher.cpp?  Not clear on publication vs. publisher
+  pub->zenohSetup();
 
   return true;
 }

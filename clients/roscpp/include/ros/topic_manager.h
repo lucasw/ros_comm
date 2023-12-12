@@ -38,9 +38,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
-using zenohc::ShmManager;
-using zenohc::Session;
-
 
 namespace ros
 {
@@ -140,9 +137,6 @@ public:
 
   void incrementSequence(const std::string &_topic);
   bool isLatched(const std::string& topic);
-
-  boost::shared_ptr<zenohc::Session> z_session_;
-  boost::shared_ptr<zenohc::ShmManager> z_manager_;
 
 private:
   /** if it finds a pre-existing subscription to the same topic and of the

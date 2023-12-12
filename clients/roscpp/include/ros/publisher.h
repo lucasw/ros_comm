@@ -61,8 +61,9 @@ namespace ros
      * passed directly into a callback function)
      *
      */
+    // TODO(lucasw) can't be const because need to allocate memory for publish
     template <typename M>
-      void publish(const boost::shared_ptr<M>& message) const
+      void publish(const boost::shared_ptr<M>& message)  // const
     {
       using namespace serialization;
 
@@ -87,7 +88,19 @@ namespace ros
         }
 
       std::cout << "publish ptr\n";
-      // publishZenoh(message);
+
+      const size_t length = ros::serialization::serializationLength(*message);
+      std::cout << impl_->topic_ << " " << length << "\n";
+      auto shmbuf = zenohc::expect<zenohc::Shmbuf>(
+          ZenohManager::instance()->shm_manager_->alloc(length));
+
+      ros::serialization::OStream ostream(shmbuf.ptr(), length);
+      ros::serialization::serialize(ostream, *message);
+
+      auto payload = shmbuf.into_payload();
+
+      publishZenoh(payload);
+
 #if 0
       SerializedMessage m;
       m.type_info = &typeid(M);
@@ -97,9 +110,8 @@ namespace ros
 #endif
     }
 
+    void publishZenoh(zenohc::Payload& payload) const;
 #if 0
-    template <typename M>
-      void publishZenoh(const boost::shared_ptr<M>& message) const;
     template <typename M>
       void publishZenoh(const M& message) const;
 #endif
@@ -108,7 +120,7 @@ namespace ros
      * \brief Publish a message on the topic associated with this Publisher.
      */
     template <typename M>
-      void publish(const M& message) const
+      void publish(const M& message)  // const
     {
       using namespace serialization;
       namespace mt = ros::message_traits;

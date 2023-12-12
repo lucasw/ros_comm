@@ -150,7 +150,8 @@ public:
 
   bool validateHeader(const Header& h, std::string& error_msg);
 
-  // TODO(lucasw) put in Impl
+  void zenohSetup();
+
   boost::shared_ptr<zenohc::Publisher> zenoh_pub_;
 
 private:

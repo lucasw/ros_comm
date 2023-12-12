@@ -58,6 +58,37 @@ namespace z = zenohc;  // to disambiguate names for code analyzers
 }
 #endif
 
+struct ZenohManager
+{
+  typedef boost::shared_ptr<ZenohManager> ZenohManagerPtr;
+
+  static ZenohManagerPtr& instance()
+  {
+    static ZenohManagerPtr zenoh_manager = boost::make_shared<ZenohManager>();
+    return zenoh_manager;
+  }
+
+  void start() {
+    z_owned_config_t config = z_config_default();
+    session_ = boost::make_shared<zenohc::Session>(
+        zenohc::expect<zenohc::Session>(zenohc::open(std::move(config))));
+    std::cout << "zenoh session " << session_ << " " << session_->info_zid() << "\n";
+
+    std::ostringstream oss;
+    oss << session_->info_zid();
+    // TODO(lucasw) how to manage the buffer size?  Pass in as parameter, and dynamically
+    // adjust as needed?
+    const size_t buf_sz = 2048 * 1024 * 3 * 4;
+    shm_manager_ = boost::make_shared<zenohc::ShmManager>(
+      zenohc::expect<zenohc::ShmManager>(
+        shm_manager_new(*session_, oss.str().c_str(), buf_sz)));
+  }
+
+  boost::shared_ptr<zenohc::Session> session_;
+  boost::shared_ptr<zenohc::ShmManager> shm_manager_;
+};
+
+
 namespace ros
 {
 
