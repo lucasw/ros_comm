@@ -66,10 +66,17 @@ struct ZenohManager
     oss << session_->info_zid();
     // TODO(lucasw) how to manage the buffer size?  Pass in as parameter, and dynamically
     // adjust as needed?
-    const size_t buf_sz = 2048 * 1024 * 3 * 8;
+    const size_t buf_sz = 64 * 1024 * 1024;
     shm_manager_ = boost::make_shared<zenohc::ShmManager>(
       zenohc::expect<zenohc::ShmManager>(
         shm_manager_new(*session_, oss.str().c_str(), buf_sz)));
+  }
+
+  void clean()
+  {
+    // garbage collect and defragment
+    shm_manager_->gc();
+    shm_manager_->defrag();
   }
 
   boost::shared_ptr<zenohc::Session> session_;

@@ -108,6 +108,9 @@ void Publisher::publishZenoh(zenohc::Payload& payload) const
   PublicationPtr pub = TopicManager::instance()->lookupPublication(impl_->topic_);
   pub->zenoh_pub_->put_owned(std::move(payload), options);
 
+  // TODO(lucasw) make this optional, allow the caller to decide when to clean in case
+  // they want to do a bunch of publishes with no stopping (and are confident the buffer is big enough)
+  ZenohManager::instance()->clean();
 #if 0
   if (isLatched()) {
     boost::mutex::scoped_lock lock(impl_->last_message_mutex_);
