@@ -142,7 +142,7 @@ namespace ros
       ros::serialization::serialize(ostream, message);
 
       auto payload = shmbuf.into_payload();
-      ROS_INFO_STREAM(message << " ref " <<  typeid(M).name() << " " << impl_->topic_
+      ROS_INFO_STREAM(&message << " ref " << typeid(M).name() << " " << impl_->topic_
           << " " << length << " " << payload.get_payload().get_len());
 
       publishZenoh(payload);
