@@ -537,6 +537,8 @@ bool TopicManager::registerSubscriber(const SubscriptionPtr& s, const string &da
     s->addLocalConnection(pub);
   }
 
+  s->zenohSetup();
+
   return true;
 }
 

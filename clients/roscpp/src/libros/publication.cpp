@@ -321,7 +321,7 @@ void Publication::zenohSetup()
 {
   auto key = name_;
   key.erase(key.begin());
-  std::cout << this << " " << this << " " << name_ << " " << key << " with "
+  std::cout << "publication " << this << " " << name_ << " " << key << " with "
     << ZenohManager::instance()->session_ << "\n";
   zenoh_pub_ = boost::make_shared<zenohc::Publisher>(
       zenohc::expect<zenohc::Publisher>(ZenohManager::instance()->session_->declare_publisher(key)));

@@ -194,6 +194,7 @@ void TransportPublisherLink::onMessage(const ConnectionPtr& conn, const boost::s
 
   if (success)
   {
+    std::cout << "received " << buffer.get() << " " << size << " bytes\n";
     handleMessage(SerializedMessage(buffer, size), true, false);
   }
 

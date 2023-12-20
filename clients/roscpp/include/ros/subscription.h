@@ -41,6 +41,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
+#include <zenohc.hxx>
+
 namespace ros
 {
 
@@ -182,6 +184,12 @@ public:
   void getPublishTypes(bool& ser, bool& nocopy, const std::type_info& ti);
 
   void headerReceived(const PublisherLinkPtr& link, const Header& h);
+
+  void zenohSetup();
+
+  void zenohSampleCallback(const zenohc::Sample& sample);
+
+  boost::shared_ptr<zenohc::Subscriber> zenoh_sub_;
 
 private:
   Subscription(const Subscription &); // not copyable

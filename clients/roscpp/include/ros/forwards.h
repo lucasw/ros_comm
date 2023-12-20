@@ -33,6 +33,7 @@
 #include <map>
 #include <set>
 #include <list>
+#include <thread>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -60,7 +61,8 @@ struct ZenohManager
     z_owned_config_t config = z_config_default();
     session_ = boost::make_shared<zenohc::Session>(
         zenohc::expect<zenohc::Session>(zenohc::open(std::move(config))));
-    std::cout << "zenoh session " << session_ << " " << session_->info_zid() << "\n";
+    std::cout << this << " thread: " << std::this_thread::get_id() << " zenoh session " << session_
+        << " " << session_->info_zid() << "\n";
 
     std::ostringstream oss;
     oss << session_->info_zid();

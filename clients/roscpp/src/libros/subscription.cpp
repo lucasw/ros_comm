@@ -36,6 +36,7 @@
 #include <fcntl.h>
 #include <cerrno>
 #include <cstring>
+#include <thread>
 #include <typeinfo>
 
 #include "ros/common.h"
@@ -154,6 +155,66 @@ uint32_t Subscription::getNumPublishers()
     }
   }
   return num_connected_publishers;
+}
+
+void Subscription::zenohSetup()
+{
+  auto z_session = ZenohManager::instance()->session_;
+  auto key = name_;
+  key.erase(key.begin());
+  // appears to be same thread as one that created zenoh session
+  std::cout << "subscription " << this << " thread: " << std::this_thread::get_id() << " "
+    << name_ << " " << key << " with "
+    << z_session << "\n";
+  // TODO(lucasw) need a corresponding unregister for this when no callbacks are on it
+#if 1
+  // TODO(lucasw) maybe need to make sure this happens in the right thread
+  zenoh_sub_ = boost::make_shared<zenohc::Subscriber>(
+      zenohc::expect<zenohc::Subscriber>(z_session->declare_subscriber(key,
+        [this](const zenohc::Sample& sample) {this->zenohSampleCallback(sample);})));
+#endif
+}
+
+void Subscription::zenohSampleCallback(const zenohc::Sample& sample)
+{
+  const auto z_bytes = sample.get_payload();
+  const auto size = z_bytes.get_len();
+  uint8_t* bytes = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(z_bytes.as_string_view().data()));
+  // const uint8_t* bytes = reinterpret_cast<const uint8_t*>(z_bytes.as_string_view().data());
+
+  ROS_INFO_STREAM(size << " " << z_bytes.as_string_view().length());
+  // TODO(lucasw) the bytes pointer doesn't meet the requirements of boost shared_array- wasn't allocated with new?
+  // shared_array tries to delete this when it goes out of scope
+  // const boost::shared_array<uint8_t> buffer(bytes);
+
+  ROS_WARN_STREAM_ONCE("need to eliminate need for this copy");
+  // TEMP TODO(lucasw) temporary copy of buffer, really want to avoid this
+  // but likely have to change SerializeMessage to have another constructor or otherwise
+  // take something other than boost::shared_array
+  auto tmp_bytes = new uint8_t[size];
+  memcpy(tmp_bytes, bytes, size);
+  auto buffer = boost::shared_array<uint8_t>(tmp_bytes);
+
+  ROS_INFO_STREAM(std::this_thread::get_id() << " received " << buffer.get() << " " << size
+      << " bytes, dispatching to "
+      << publisher_links_.size() << " publisher links\n");
+
+  const auto serialized_message = SerializedMessage(buffer, size);
+
+  const bool ser = true;
+  const bool nocopy = false;
+
+  // TODO(lucasw) how many of these are there?  It will be deserializing the same message
+  // over and over- though there is a mention in handleMessage that the same message
+  // could be deserialized into different C++ types, so maybe there is only on of these per type?
+  boost::mutex::scoped_lock lock(publisher_links_mutex_);
+  for (V_PublisherLink::iterator publisher_link_it = publisher_links_.begin();
+       publisher_link_it != publisher_links_.end(); ++publisher_link_it)
+  {
+    handleMessage(serialized_message, ser, nocopy, nullptr, *publisher_link_it);
+  }
+
+  ROS_INFO_STREAM("done with sample callback");
 }
 
 void Subscription::drop()
@@ -629,6 +690,7 @@ uint32_t Subscription::handleMessage(const SerializedMessage& m, bool ser, bool 
 
     const std::type_info* ti = &info->helper_->getTypeInfo();
 
+    // even if nocopy is desired the type mismatched means deserialization is needed anyhow
     if ((nocopy && m.type_info && *ti == *m.type_info) || (ser && (!m.type_info || *ti != *m.type_info)))
     {
       MessageDeserializerPtr deserializer;
@@ -671,7 +733,8 @@ uint32_t Subscription::handleMessage(const SerializedMessage& m, bool ser, bool 
   }
 
   // measure statistics
-  statistics_.callback(connection_header, name_, link->getCallerID(), m, link->getStats().bytes_received_, receipt_time, drops > 0, link->getConnectionID());
+  // TODO(lucasw) connection_header is null currently
+  // statistics_.callback(connection_header, name_, link->getCallerID(), m, link->getStats().bytes_received_, receipt_time, drops > 0, link->getConnectionID());
 
   // If this link is latched, store off the message so we can immediately pass it to new subscribers later
   if (link->isLatched())
