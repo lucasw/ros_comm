@@ -25,6 +25,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/ros/common.h.in ${CATKIN_DEVE
 find_package(Boost REQUIRED COMPONENTS chrono filesystem system)
 find_package(zenohc REQUIRED)
 find_package(zenohcxx REQUIRED)
+set(zenohc_LIBRARIES "zenohcxx::zenohc::lib")
 
 include_directories(include ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}/ros ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 # this is needed for use within a bazel workspace. See #1548 for details.
@@ -59,7 +60,7 @@ catkin_package(
   INCLUDE_DIRS include ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}/ros
   LIBRARIES roscpp ${PTHREAD_LIB}
   CATKIN_DEPENDS cpp_common message_runtime rosconsole roscpp_serialization roscpp_traits rosgraph_msgs rostime std_msgs xmlrpcpp
-  DEPENDS Boost
+  DEPENDS Boost zenohc
 )
 
 include(CheckIncludeFiles)
@@ -138,7 +139,7 @@ add_dependencies(roscpp ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TA
 target_link_libraries(roscpp
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
-  zenohcxx::zenohc::lib
+  ${zenohc_LIBRARIES}
   )
 
 if(WIN32)
