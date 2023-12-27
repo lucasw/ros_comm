@@ -108,7 +108,7 @@ try:
             # TODO(lucasw) all the log outputs are coming through as <module>
             function = '<module>'
             expected_log_out = ' '.join([
-                'INFO',
+                'I',
                 'on ' + loc,
                 r'[0-9]*\.[0-9]*',
                 r'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}',
@@ -124,6 +124,7 @@ try:
                 r'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}',
             ])
             text = f"{loc} {function}\nexpected: {expected_log_out}\nactual:   {log_out}\n{log_outs}"
+            # TODO(lucasw) if there is a mismatch the assert isn't very helpful in where it is
             assert_regexp_matches(log_out, expected_log_out, text)
 
 finally:
