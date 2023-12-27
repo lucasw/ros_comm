@@ -234,7 +234,8 @@ def get_shortfile(pathname, maxlen=30):
 
 def format_msg(record_message, thread, name, pathname,
                lineno, funcName, levelname, levelno,
-               extra_time):
+               extra_time,
+               get_time=None, is_wallclock=False):
     level, color = _logging_to_rospy_names[levelname]
     msg = os.environ.get(
         'ROSCONSOLE_FORMAT', '[${severity}] [${time}]: ${message}')
@@ -270,8 +271,8 @@ def format_msg(record_message, thread, name, pathname,
         time_format = msg[tag_end_index: msg.index('}', tag_end_index)]
         time_str = time.strftime(time_format)
 
-        if self._get_time is not None and not self._is_wallclock():
-            time_str += ', %f' % self._get_time()
+        if get_time is not None and not is_wallclock:
+            time_str += ', %f' % get_time()
 
         msg = msg.replace('${time:' + time_format + '}', time_str)
 
@@ -297,7 +298,8 @@ class RosStreamHandler(logging.Handler):
         extra_time = self._get_time() if self._get_time is not None and not self._is_wallclock() else None
         msg, color = format_msg(record_message, record.thread, record.name, record.pathname,
                                 record.lineno, record.funcName, record.levelname, record.levelno,
-                                extra_time)
+                                extra_time,
+                                self._get_time, self._is_wallclock())
         msg += '\n'
         if record.levelno < logging.WARNING:
             self._write(self._stdout, msg, color)

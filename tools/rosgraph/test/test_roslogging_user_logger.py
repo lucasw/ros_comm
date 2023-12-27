@@ -58,9 +58,9 @@ class UserCustomLogger(logging.Logger):
         """
         if sys.version_info > (3, 2):
             # Dummy last argument to match Python3 return type
-            return '<filename>', '<lineno>', '<func_name>', None
+            return '<filename>', 1234, '<func_name>', None
         else:
-            return '<filename>', '<lineno>', '<func_name>'
+            return '<filename>', 1234, '<func_name>'
 
     def _log(self, level, msg, args, exc_info=None, extra=None):
         """Write log with ROS_IP.
@@ -125,6 +125,7 @@ def test_roslogging_user_logger():
         msg = 'Hello world.'
         loginfo(msg)
 
+        # TODO(lucasw) 1234 magic number
         log_expected = ' '.join([
             'INFO',
             os.environ['ROS_IP'],
@@ -134,7 +135,7 @@ def test_roslogging_user_logger():
             '[0-9]*',
             'rosout.custom_logger_test',
             '<filename>',
-            '<lineno>',
+            1234,
             '<func_name>',
             # depending if rospy.get_name() is available
             '(/unnamed|<unknown_node_name>)',
