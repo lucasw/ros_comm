@@ -146,11 +146,11 @@ class TestRospyCore(unittest.TestCase):
                 # and because it s not consistent
                 def lvl2loglvl_stream(lvl):
                     return {
-                        'debug': 'DEBUG',
-                        'info': 'INFO',
-                        'warn': 'WARN',
-                        'err': 'ERROR',
-                        'fatal': 'FATAL',
+                        'debug': 'D',
+                        'info': 'I',
+                        'warn': 'W',
+                        'err': 'E',
+                        'fatal': 'F',
                     }.get(lvl)
 
                 # test that they are exposed via top-level api
@@ -170,7 +170,8 @@ class TestRospyCore(unittest.TestCase):
                     if lvl in ['debug']:
                         self.assertTrue(len(fileline) == 0)  # no log in file with logdebug
                     else:  # proper format
-                        self.assertTrue(bool(re.match(log_file, fileline)), msg="{0} doesn't match: {1}".format(fileline, log_file))
+                        print(log_file)
+                        self.assertTrue(bool(re.match(log_file, fileline)), msg=f"'{fileline}' log doesn't match: '{log_file}'")
 
                     log_out = ' '.join([
                         lvl2loglvl_stream(lvl),
@@ -179,7 +180,7 @@ class TestRospyCore(unittest.TestCase):
                         '[0-9]*',
                         'rosout',
                         re.escape(this_file),
-                        '[0-9]*',
+                        '\s+[0-9]*',
                         'TestRospyCore.test_loggers',
                         '/unnamed',
                         '[0-9]*\.[0-9]*',
@@ -190,12 +191,12 @@ class TestRospyCore(unittest.TestCase):
                     if lvl in ['info']:
                         self.assertTrue(len(outline) > 0)
                         # print("lout.getvalue(): " + outline[-1])
-                        self.assertTrue(bool(re.match(log_out, outline[-1])), msg="{0}\n doesn't match: {1}".format(outline[-1], log_out))
+                        self.assertTrue(bool(re.match(log_out, outline[-1])), msg=f"{outline[-1]}\n out doesn't match: {log_out}")
 
                     elif lvl in ['warn', 'err', 'fatal']:
                         self.assertTrue(len(errline) > 0)
                         # print("lerr.getvalue(): " + errline[-1])
-                        self.assertTrue(bool(re.match(log_out, errline[-1])), msg="{0}\n doesn't match: {1}".format(errline[-1], log_out))
+                        self.assertTrue(bool(re.match(log_out, errline[-1])), msg=f"{errline[-1]}\n err doesn't match: {log_out}")
 
             finally:
                 lf.close()
