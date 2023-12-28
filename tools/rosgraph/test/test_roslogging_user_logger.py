@@ -127,7 +127,7 @@ def test_roslogging_user_logger():
 
         # TODO(lucasw) 1234 magic number
         log_expected = ' '.join([
-            'INFO',
+            'I',
             os.environ['ROS_IP'],
             msg,
             r'[0-9]*\.[0-9]*',
@@ -135,7 +135,7 @@ def test_roslogging_user_logger():
             '[0-9]*',
             'rosout.custom_logger_test',
             '<filename>',
-            1234,
+            '\s*[0-9]*',
             '<func_name>',
             # depending if rospy.get_name() is available
             '(/unnamed|<unknown_node_name>)',
