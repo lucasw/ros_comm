@@ -1,17 +1,18 @@
-name: Ubuntu 22.04 Noetic install
+name: Ubuntu 22.04 One install
 
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  build-ros-noetic:
+  build-ros-one:
     runs-on: ubuntu-22.04
 
     env:
       ACCEPT_EULA: true
       ROSCONSOLE_FORMAT: '[${severity}] [${time} ${node} ${shortfile}:${line}]: ${message}'
       ROS_CI_DESKTOP: "`lsb_release -cs`"  # e.g. [trusty|xenial|...]
+      ROS_ROOT: /opt/share/ros
       DEST: /home/runner/work/other/ros_comm/ros_comm/other/install
 
     steps:
@@ -55,6 +56,7 @@ jobs:
           sudo apt-get install -yqq libgmock-dev
           sudo apt-get install -yqq python-is-python3 python3-venv
           sudo apt-get install -yqq python3-numpy
+          sudo apt-get install -yqq python3-psutil
           sudo apt-get install -yqq python3-vcstools
 
       - name: Install ROS basic packages
@@ -86,7 +88,10 @@ jobs:
       - name: python path setup
         run: |
           echo "PATH=$PATH:$DEST/bin" >> $GITHUB_ENV
-          echo "PYTHONPATH=$DEST/lib/python$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION/site-packages/" >> $GITHUB_ENV
+          # a roswtf test errors out if this doesn't exist
+          export DEST_PYTHONPATH=$DEST/lib/python$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION/site-packages/
+          mkdir -p $DEST_PYTHONPATH
+          echo "PYTHONPATH=$DEST_PYTHONPATH" >> $GITHUB_ENV
 
       # available in apt in 23.04 and later
       - name: git clone pycommon
@@ -128,14 +133,15 @@ jobs:
           echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$DEST:$DEST/lib/cmake" >> $GITHUB_ENV
           catkin build --no-status
 
-      - name: run tests
+      - name: run tests with catkin_make
         run: |
-          cd install_catkin_ws
-          source install/setup.bash
-          catkin build --no-status --catkin-make-args run_tests
-          # this won't return non-zero when there are failures
-          catkin_test_results --all | grep -v "Skipping"
-          # this will
+          # TODO(lucasw) catkin_make works better for test output
+          mkdir catkin_make_ws
+          cd catkin_make_ws
+          ln -s ../install_catkin_ws/src
+          catkin_make
+          source devel/setup.bash
+          catkin_make run_tests
           catkin_test_results
 
       - name: tar up install_catkin_ws
