@@ -77,6 +77,33 @@ jobs:
           # rosdep install --from-paths src --ignore-src -r -s  # do a dry-run first
           # rosdep install --from-paths src --ignore-src -r -y
 
+      - name: checkout zenoh-c
+        uses: actions/checkout@v4
+        with:
+          repository: eclipse-zenoh/zenoh-c
+          path: other/src/zenoh-c
+
+      - name: checkout zenoh-cpp
+        uses: actions/checkout@v4
+        with:
+          repository: eclipse-zenoh/zenoh-cpp
+          path: other/src/zenoh-cpp
+
+      - name: build & install zenoh-c
+        run: |
+          mkdir other/build/zenoh-c -p
+          cd other/build/zenoh-c
+          cmake ../../src/zenoh-c -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEST
+          cmake --build . --target install
+
+      - name: build & install zenoh-cpp
+        run: |
+          mkdir other/build/zenoh-cpp -p
+          cd other/build/zenoh-cpp
+          cmake ../../src/zenoh-cpp -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEST
+          make
+          make install
+
       - name: install zenoh-python
         run: |
           pip install eclipse-zenoh
