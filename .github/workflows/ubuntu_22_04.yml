@@ -154,18 +154,20 @@ jobs:
 
       - name: catkin config
         run: |
+          echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$DEST:$DEST/lib/cmake" >> $GITHUB_ENV
           echo $CMAKE_PREFIX_PATH
           cd install_catkin_ws
           catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-deprecated -DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES=$DEST/include -DCMAKE_CXX_STANDARD=17
 
       - name: catkin build
         run: |
+          echo $CMAKE_PREFIX_PATH
           cd install_catkin_ws
-          echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$DEST:$DEST/lib/cmake" >> $GITHUB_ENV
           catkin build --no-status
 
       - name: build with catkin_make
         run: |
+          echo $CMAKE_PREFIX_PATH
           # TODO(lucasw) catkin_make works better for test output
           mkdir catkin_make_ws
           cd catkin_make_ws

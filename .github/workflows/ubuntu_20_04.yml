@@ -116,6 +116,7 @@ jobs:
       - name: catkin config
         run: |
           source /opt/ros/$ROS_DISTRO/setup.bash
+          echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$DEST:$DEST/lib/cmake" >> $GITHUB_ENV
           echo $CMAKE_PREFIX_PATH
           cd install_catkin_ws
           catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-deprecated -DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES=$DEST/include -DCMAKE_CXX_STANDARD=17
@@ -124,12 +125,12 @@ jobs:
         run: |
           cd install_catkin_ws
           source /opt/ros/$ROS_DISTRO/setup.bash
-          export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$DEST:$DEST/lib/cmake
           catkin build --no-status
 
       - name: build with catkin_make
         run: |
           # TODO(lucasw) catkin_make works better for test output
+          echo $CMAKE_PREFIX_PATH
           mkdir catkin_make_ws
           cd catkin_make_ws
           ln -s ../install_catkin_ws/src
