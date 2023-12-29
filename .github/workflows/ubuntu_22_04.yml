@@ -77,6 +77,10 @@ jobs:
           # rosdep install --from-paths src --ignore-src -r -s  # do a dry-run first
           # rosdep install --from-paths src --ignore-src -r -y
 
+      - name: install zenoh-python
+        run: |
+          pip install eclipse-zenoh
+
       - name: python version
         run: |
           mkdir -p other/src
