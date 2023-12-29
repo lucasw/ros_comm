@@ -1,4 +1,5 @@
 # use the buildfarm ppa
+# docker build . -f Dockerfile.2004_ppa -t ros_comm_2004_ppa
 ARG IMAGE=ros:noetic-ros-base
 FROM ${IMAGE}
 ARG IMAGE
@@ -14,7 +15,6 @@ RUN apt-get upgrade -yqq
 RUN apt-get install -yqq apt-utils
 
 RUN apt-cache search catkin | grep catkin && apt-get install -yqq ros-noetic-catkin
-# RUN apt-get install -yqq catkin
 RUN source /opt/ros/noetic/setup.bash && which catkin_test_results && dpkg -S /opt/ros/noetic/bin/catkin_test_results
 RUN apt-get install -yqq catkin-lint
 
@@ -65,6 +65,10 @@ ENV PATH=$DEST/bin:$PATH
 RUN which catkin
 RUN catkin --version
 
+RUN source /opt/ros/noetic/setup.bash && which catkin_make
+RUN dpkg -S /opt/ros/noetic/bin/catkin_make
+# RUN source /opt/ros/noetic/setup.bash && catkin_make --version
+
 # get packages and build
 ENV WS=/base_catkin_ws/src
 RUN mkdir $WS -p
@@ -75,10 +79,16 @@ COPY . $WS
 RUN echo $CMAKE_PREFIX_PATH
 
 WORKDIR $WS/..
-RUN catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-deprecated
-RUN catkin build -j1
-RUN catkin build -j1 --catkin-make-args run_tests
-RUN catkin_test_results --all | grep -v "Skipping"
+# RUN catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-deprecated
+# RUN catkin build -j1
+# RUN catkin build -j1 --catkin-make-args run_tests
+# RUN catkin_test_results --all | grep -v "Skipping"
+
+RUN source /opt/ros/noetic/setup.bash && catkin_make
+RUN source devel/setup.bash && catkin_make --cmake-args test
+# RUN source devel/setup.bash && catkin_make run_tests
+# RUN source devel/setup.bash && catkin_test_results
+# RUN cat build/test_results/roswtf/rosunit-roswtf_command_line_online.xml
 
 # make 'source' work
 SHELL ["/bin/bash", "-c"]
