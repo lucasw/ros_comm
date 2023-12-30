@@ -191,6 +191,18 @@ def _init_node_params(argv, node_name):
 _init_node_args = None
 _zenoh_session = None
 
+def get_zenoh_session():
+    global _zenoh_session
+    if _zenoh_session is None:
+        rospy.logwarn("creating zenoh session without config")
+        zenoh_config = zenoh.Config()
+        _zenoh_session = zenoh.open(zenoh_config)
+
+    z_info = _zenoh_session.info()
+    text = f"peers: {z_info.peers_zid()}, routers: {z_info.routers_zid()} {z_info.session} {z_info.zid()}"
+    rospy.loginfo(text)
+    return _zenoh_session
+
 def init_node(name, argv=None, anonymous=False, log_level=None, disable_rostime=False, disable_rosout=False, disable_signals=False, xmlrpc_port=0, tcpros_port=0):
     """
     Register client node with the master under the specified name.

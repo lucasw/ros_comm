@@ -623,12 +623,12 @@ class _SubscriberImpl(_TopicImpl):
             if SubscriberStatisticsLogger.is_enabled() \
             else None
 
-        from rospy.client import _zenoh_session as zenoh_session
+        from rospy.client import get_zenoh_session
         zenoh_key = self.resolved_name.lstrip("/")
         rospy.loginfo(f"{self.resolved_name} -> {zenoh_key}")
         # TODO(lucasw) okay for multiple subscribers in same node on same topic?
-        self.zenoh_sub = zenoh_session.declare_subscriber(zenoh_key, self.zenoh_listener,
-                                                          reliability=Reliability.RELIABLE())
+        self.zenoh_sub = get_zenoh_session().declare_subscriber(zenoh_key, self.zenoh_listener,
+                                                                reliability=Reliability.RELIABLE())
 
     def close(self):
         """close I/O and release resources"""
@@ -919,11 +919,11 @@ class _PublisherImpl(_TopicImpl):
         else:
             self.buff = BytesIO()
 
-        from rospy.client import _zenoh_session as zenoh_session
+        from rospy.client import get_zenoh_session
         # TODO(lucasw) get full topic
         zenoh_key = self.resolved_name.lstrip("/")
         rospy.loginfo(f"{self.resolved_name} -> {zenoh_key}")
-        self.zenoh_pub = zenoh_session.declare_publisher(zenoh_key)
+        self.zenoh_pub = get_zenoh_session().declare_publisher(zenoh_key)
 
         self.publock = threading.RLock() #for acquire()/release
         self.subscriber_listeners = []
