@@ -49,7 +49,7 @@ bool g_success = false;
 bool g_failure = false;
 int32_t g_msg_i = -1;
 
-void subscriberCallback(const ros::SingleSubscriberPublisher&, const ros::Publisher& pub)
+void subscriberCallback(const ros::SingleSubscriberPublisher&, ros::Publisher& pub)
 {
   test_roscpp::TestArray outmsg;
   for(int i=0;i<g_msg_count;i++)
