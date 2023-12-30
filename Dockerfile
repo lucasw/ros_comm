@@ -1,3 +1,4 @@
+# docker build . -f Dockerfile -t ros_comm_2204
 ARG IMAGE=ubuntu:22.04
 FROM ${IMAGE}
 ARG IMAGE
@@ -57,6 +58,26 @@ ENV PYTHONPATH=$OPT_PYTHONPATH
 RUN echo $PYTHONPATH
 
 ENV PATH=$DEST/bin:$PATH
+
+RUN apt-get install -yqq cargo rustc
+
+WORKDIR $SRC
+RUN git clone https://github.com/eclipse-zenoh/zenoh-c
+WORKDIR $SRC/zenoh-c
+RUN mkdir $SRC/build/zenoh-c -p
+WORKDIR $SRC/build/zenoh-c
+RUN cmake $SRC/zenoh-c -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEST
+RUN cmake --build . --target install
+
+WORKDIR $SRC
+RUN git clone https://github.com/eclipse-zenoh/zenoh-cpp
+RUN mkdir $SRC/build/zenoh-cpp -p
+WORKDIR $SRC/build/zenoh-cpp
+RUN cmake $SRC/zenoh-cpp -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEST
+RUN make
+RUN make install
+
+RUN pip install zenoh
 
 # get packages and build
 ENV WS=/base_catkin_ws/src
