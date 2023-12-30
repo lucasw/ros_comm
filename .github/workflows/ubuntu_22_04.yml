@@ -111,7 +111,6 @@ jobs:
       - name: python version
         run: |
           mkdir -p other/src
-          echo "DEST=$HOME/other/install" >> $GITHUB_ENV
           # echo "$DEST/bin" >> $GITHUB_PATH
           echo PYTHON_MAJOR_VERSION=`python --version | awk  '{print $2}' | cut -d'.' -f1` >> $GITHUB_ENV
           echo PYTHON_MINOR_VERSION=`python --version | awk  '{print $2}' | cut -d'.' -f2` >> $GITHUB_ENV
