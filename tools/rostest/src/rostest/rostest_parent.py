@@ -46,6 +46,10 @@ import roslaunch.xmlloader
 import roslaunch.parent
 
 from rosmaster.master import Master
+
+is_inside_venv = sys.prefix != sys.base_prefix
+print(f"is inside venv: {is_inside_venv}")
+
 from rospy import logwarn
 
 class ROSTestLaunchParent(roslaunch.parent.ROSLaunchParent):
