@@ -639,6 +639,7 @@ class _SubscriberImpl(_TopicImpl):
         if self.statistics_logger:
             self.statistics_logger.shutdown()
             self.statistics_logger = None
+        self.zenoh_sub.undeclare()
         
     def set_tcp_nodelay(self, tcp_nodelay):
         """
