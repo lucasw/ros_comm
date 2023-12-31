@@ -632,6 +632,9 @@ class _SubscriberImpl(_TopicImpl):
         zenoh_key = self.resolved_name.lstrip("/")
         rospy.loginfo(f"subscriber {self.resolved_name} -> {zenoh_key}")
         # TODO(lucasw) okay for multiple subscribers in same node on same topic?
+        if get_zenoh_session() is None:
+            self.zenoh_sub = None
+            return
         self.zenoh_sub = get_zenoh_session().declare_subscriber(zenoh_key, self.zenoh_listener,
                                                                 reliability=Reliability.RELIABLE())
 
@@ -644,7 +647,8 @@ class _SubscriberImpl(_TopicImpl):
         if self.statistics_logger:
             self.statistics_logger.shutdown()
             self.statistics_logger = None
-        self.zenoh_sub.undeclare()
+        if self.zenoh_sub is not None:
+            self.zenoh_sub.undeclare()
         
     def set_tcp_nodelay(self, tcp_nodelay):
         """
@@ -929,7 +933,10 @@ class _PublisherImpl(_TopicImpl):
         # TODO(lucasw) get full topic
         zenoh_key = self.resolved_name.lstrip("/")
         rospy.loginfo(f"publisher {self.resolved_name} -> {zenoh_key}")
-        self.zenoh_pub = get_zenoh_session().declare_publisher(zenoh_key)
+        if get_zenoh_session() is None:
+            self.zenoh_pub = None
+        else:
+            self.zenoh_pub = get_zenoh_session().declare_publisher(zenoh_key)
 
         self.publock = threading.RLock() #for acquire()/release
         self.subscriber_listeners = []
@@ -1099,7 +1106,8 @@ class _PublisherImpl(_TopicImpl):
 
             # if self.seq % 20 == 0:
             #     print(f"{self.seq} put {b.getbuffer().nbytes} bytes on '{self.zenoh_pub.key_expr}'")
-            self.zenoh_pub.put(data)
+            if self.zenoh_pub is not None:
+                self.zenoh_pub.put(data)
             # TODO(lucasw) are there any exceptions or errors from the put() to add into err_con?
             # err_con.append(c)
 

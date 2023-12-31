@@ -194,9 +194,11 @@ _zenoh_session = None
 def get_zenoh_session():
     global _zenoh_session
     if _zenoh_session is None:
-        rospy.logwarn("creating zenoh session without config")
-        zenoh_config = zenoh.Config()
-        _zenoh_session = zenoh.open(zenoh_config)
+        rospy.logwarn("not creating zenoh session without config")
+        return None
+        # rospy.logwarn("creating zenoh session without config")
+        # zenoh_config = zenoh.Config()
+        # _zenoh_session = zenoh.open(zenoh_config)
 
     z_info = _zenoh_session.info()
     text = f"peers: {z_info.peers_zid()}, routers: {z_info.routers_zid()} {z_info.session} {z_info.zid()}"
