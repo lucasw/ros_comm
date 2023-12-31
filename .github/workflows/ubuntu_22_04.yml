@@ -171,7 +171,7 @@ jobs:
           mkdir catkin_make_ws
           cd catkin_make_ws
           ln -s ../install_catkin_ws/src
-          catkin_make
+          catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-deprecated -DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES=$DEST/include
 
       - name: run tests with catkin_make
         run: |
