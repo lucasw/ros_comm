@@ -53,12 +53,10 @@ def run_for(cmd, secs):
 class TestRosnodeOnline(unittest.TestCase):
 
     def setUp(self):
-        self.vals = set()
         self.msgs = {}
 
-    def callback(self, msg, val):
-        self.vals.add(val)
-        self.msgs[val] = msg
+    def callback(self, msg, key):
+        self.msgs[key] = msg
         
     def test_rosnode(self):
         topics = ['/chatter', '/foo/chatter', '/bar/chatter']
@@ -66,16 +64,16 @@ class TestRosnodeOnline(unittest.TestCase):
         # wait for network to initialize
         rospy.init_node('test')
         nodes = ['/talker', '/foo/talker', '/bar/talker', rospy.get_caller_id()]
-        
-        for i, t in enumerate(topics):
-            rospy.Subscriber(t, std_msgs.msg.String, self.callback, i)
-        all = set(range(0, len(topics)))
+
+        subs = {}
+        for t in topics:
+            subs[t] = rospy.Subscriber(t, std_msgs.msg.String, self.callback, t)
 
         timeout_t = time.time() + 10.
-        while time.time() < timeout_t and self.vals != all:
+        while time.time() < timeout_t and len(self.msgs.keys()) < len(topics):
             time.sleep(0.1)
-        self.assertEqual(self.vals, all, "failed to initialize graph correctly")
-            
+        self.assertEqual(set(self.msgs.keys()), set(topics),
+                         f"failed to initialize graph correctly {self.msgs}")
 
         # network is initialized
         cmd = 'rosnode'
