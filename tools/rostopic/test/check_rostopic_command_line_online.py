@@ -42,7 +42,7 @@ import rostest
 
 import std_msgs.msg
 
-from subprocess import Popen, PIPE, check_call, call
+from subprocess import Popen, PIPE
 
 def run_for(cmd, secs):
     popen = Popen(cmd, stdout=PIPE, stderr=PIPE, close_fds=True)
@@ -54,37 +54,40 @@ def run_for(cmd, secs):
 class TestRostopicOnline(unittest.TestCase):
 
     def setUp(self):
-        self.vals = set()
         self.msgs = {}
+        self.topics = ['/chatter', '/foo/chatter', '/bar/chatter']
+        rospy.loginfo(self.topics)
+        self.cmd = 'rostopic'
 
-    def callback(self, msg, val):
-        self.vals.add(val)
-        self.msgs[val] = msg
-        
-    def test_rostopic(self):
-        topics = ['/chatter', '/foo/chatter', '/bar/chatter']
-        
         # wait for network to initialize
         rospy.init_node('test')
+
+    def callback(self, msg, key):
+        self.msgs[key] = msg
+
+    def test_rostopic(self):
+        topics = self.topics
+        cmd = self.cmd
+
         for i, t in enumerate(topics):
             rospy.Subscriber(t, std_msgs.msg.String, self.callback, i)
-        all = set(range(0, len(topics)))
 
-        timeout_t = time.time() + 10.
-        while time.time() < timeout_t and self.vals != all:
+        timeout_t = time.time() + 10.0
+        while time.time() < timeout_t and set(topics) != set(self.msgs.keys()):
             time.sleep(0.1)
 
         # network is initialized
-        cmd = 'rostopic'
         names = ['/chatter', 'foo/chatter']
 
+        time.sleep(1.0)
         # list
         # - we aren't matching against the core services as those can make the test suites brittle
         output = Popen([cmd, 'list'], stdout=PIPE).communicate()[0]
         output = output.decode()
-        l = set(output.split())
-        for t in topics:
-            self.assert_(t in l)
+        topic_list = set(output.split())
+        rospy.logwarn("{topics} - {topic_list})")
+        for topic in topics:
+            self.assert_(topic in topic_list, f"{topic} - {topic_list}")
 
         for name in names:
             # type
@@ -96,20 +99,24 @@ class TestRostopicOnline(unittest.TestCase):
             output = output.decode()
             self.assertEqual('std_msgs/String data string', output.strip())
 
-            # find
-            output = Popen([cmd, 'find', 'std_msgs/String'], stdout=PIPE).communicate()[0]
+            # TODO(lucasw) it seems like the publishers from test_rostopic_pub
+            # sometimes are seen here when running the test with reuse-master
+            full_cmd = [cmd, 'find', 'std_msgs/String']
+            output = Popen(full_cmd, stdout=PIPE).communicate()[0]
             output = output.decode()
             values = [n.strip() for n in output.split('\n') if n.strip()]
-            self.assertEqual(set(values), set(topics))
+            self.assertEqual(set(values), set(topics), f"\n{full_cmd}\noutput: {output}\nvalues: {values}\n{topics}")
 
             #echo
             # test with -c option to get command to terminate
             count = 3
-            output = Popen([cmd, 'echo', name, '-n', str(count)], stdout=PIPE).communicate()[0]
+            full_cmd = [cmd, 'echo', name, '-n', str(count)]
+            output = Popen(full_cmd, stdout=PIPE).communicate()[0]
             output = output.decode()
             values = [n.strip() for n in output.split('\n') if n.strip()]
-            values = [n for n in values if n != '---']
-            self.assertEqual(count, len(values), "wrong number of echos in output:\n"+str(values))
+            values = [n for n in values if n.startswith("data: ")]
+            text = f"{full_cmd}\nwrong number of echos in output:\n{values}"
+            self.assertEqual(count, len(values), text)
             for n in values:
                 self.assert_('data: "hello world ' in n, n)
 
@@ -125,49 +132,50 @@ class TestRostopicOnline(unittest.TestCase):
                 # delay
                 stdout, stderr = run_for([cmd, 'delay', name], 2.)
                 self.assert_('average rate:' in stdout)
-            
+
+    def test_rostopic_pub(self):
+        topics = self.topics
+        cmd = self.cmd
         # pub
         #  - pub wait until ctrl-C, so we have to wait then kill it
-        if 1:
+        if True:
             s = 'hello'
-            t = '/pub/chatter'
-            key = len(topics)
-            rospy.Subscriber(t, std_msgs.msg.String, self.callback, key)
+            topic = '/pub/chatter'
+            key = topic
+            sub1 = rospy.Subscriber(topic, std_msgs.msg.String, self.callback, key)
+            rospy.loginfo(f"created {topic}")
 
             #TODO: correct popen call
-            args = [cmd, 'pub', t, 'std_msgs/String', s]
+            args = [cmd, 'pub', topic, 'std_msgs/String', s]
             popen = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=True)
         
             # - give rostopic pub 5 seconds to send us a message
-            all = set(range(0, key+1))
-            timeout_t = time.time() + 5.
-            while time.time() < timeout_t and self.vals != all:
+            timeout_t = time.time() + 5.0
+            while time.time() < timeout_t and set(topics) != set(self.msgs.keys()):
                 time.sleep(0.1)
             # - check published value
+            self.assertIn(key, self.msgs, f"{self.msgs}")
             msg = self.msgs[key]
-            self.assertEqual(s, msg.data)
+            self.assertEqual(s, msg.data, f"{args} {self.msgs}")
             
             os.kill(popen.pid, signal.SIGKILL)
 
             # test with dictionary
-            t = '/pub2/chatter'
-            key = len(topics)+1            
-            rospy.Subscriber(t, std_msgs.msg.String, self.callback, key)
+            topic = '/pub2/chatter'
+            key = topic
+            sub2 = rospy.Subscriber(topic, std_msgs.msg.String, self.callback, key)
 
-            args = [cmd, 'pub', t, 'std_msgs/String', "{data: %s}"%s]
+            args = [cmd, 'pub', topic, 'std_msgs/String', "{data: %s}"%s]
             popen = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=True)
 
             # - give rostopic pub 5 seconds to send us a message
-            all = set(range(0, key+2))
             timeout_t = time.time() + 5.
-            while time.time() < timeout_t and self.vals != all:
+            while time.time() < timeout_t and set(topics) != set(self.msgs.keys()):
                 time.sleep(0.1)
                 
             # - check published value
-            try:
-                msg = self.msgs[key]
-            except KeyError:
-                self.fail("no message received on "+str(key))
+            self.assertIn(key, self.msgs)
+            msg = self.msgs[key]
             self.assertEqual(s, msg.data)
             
             os.kill(popen.pid, signal.SIGKILL)
