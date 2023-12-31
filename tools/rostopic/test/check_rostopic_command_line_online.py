@@ -69,8 +69,9 @@ class TestRostopicOnline(unittest.TestCase):
         topics = self.topics
         cmd = self.cmd
 
+        subs = {}
         for i, t in enumerate(topics):
-            rospy.Subscriber(t, std_msgs.msg.String, self.callback, i)
+            subs[i] = rospy.Subscriber(t, std_msgs.msg.String, self.callback, i)
 
         timeout_t = time.time() + 10.0
         while time.time() < timeout_t and set(topics) != set(self.msgs.keys()):

@@ -59,7 +59,7 @@ def callback(data):
     
 def listener():
     rospy.init_node("listenerpublisher_embed")
-    rospy.Subscriber("chatter", EmbedTest, callback)
+    sub = rospy.Subscriber("chatter", EmbedTest, callback)
     rospy.spin()
         
 if __name__ == '__main__':

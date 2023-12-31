@@ -45,7 +45,7 @@ def callback(data):
 def listener():
     rospy.init_node('listener', anonymous=True)
     rospy.sleep(rospy.get_param('delay', 0.0))
-    rospy.Subscriber("chatter", String, callback)
+    sub = rospy.Subscriber("chatter", String, callback)
     rospy.spin()
 
 

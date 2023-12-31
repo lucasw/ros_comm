@@ -41,7 +41,7 @@ Listener example::
     from rospy.numpy_msg import numpy_msg
 
     rospy.init_node('mynode')
-    rospy.Subscriber("mytopic", numpy_msg(TopicType)
+    sub = rospy.Subscriber("mytopic", numpy_msg(TopicType)
 
 Publisher example::
 

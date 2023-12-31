@@ -80,7 +80,7 @@ class TestEmbedMsg(unittest.TestCase):
         
         print("Publishing to ", PUBTOPIC)
         pub = rospy.Publisher(PUBTOPIC, MSG, queue_size=0)
-        rospy.Subscriber(LPTOPIC, MSG, self._test_embed_msg_callback) 
+        sub = rospy.Subscriber(LPTOPIC, MSG, self._test_embed_msg_callback)
 
         # publish about 10 messages for fun
         import random

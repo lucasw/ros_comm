@@ -59,7 +59,7 @@ class TestOnShutdown(unittest.TestCase):
             self.success = True
 
     def test_notify(self):
-        rospy.Subscriber("chatter", String, self.callback)
+        sub = rospy.Subscriber("chatter", String, self.callback)
         rospy.init_node(NAME, anonymous=True)
         timeout_t = time.time() + 10.0*1000 #10 seconds
         while not rospy.is_shutdown() and not self.success and time.time() < timeout_t:

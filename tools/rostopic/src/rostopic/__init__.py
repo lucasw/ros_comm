@@ -310,9 +310,9 @@ def _rostopic_hz(topics, window_size=-1, filter_expr=None, use_wtime=False, tcp_
         # may parameterize this in the future
         if filter_expr is not None:
             # have to subscribe with topic_type
-            rospy.Subscriber(real_topic, msg_class, rt.callback_hz, callback_args=topic, tcp_nodelay=tcp_nodelay)
+            sub = rospy.Subscriber(real_topic, msg_class, rt.callback_hz, callback_args=topic, tcp_nodelay=tcp_nodelay)
         else:
-            rospy.Subscriber(real_topic, rospy.AnyMsg, rt.callback_hz, callback_args=topic, tcp_nodelay=tcp_nodelay)
+            sub = rospy.Subscriber(real_topic, rospy.AnyMsg, rt.callback_hz, callback_args=topic, tcp_nodelay=tcp_nodelay)
         print("subscribed to [%s]" % real_topic)
 
     if rospy.get_param('use_sim_time', False):

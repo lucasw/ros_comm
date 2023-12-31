@@ -176,7 +176,7 @@ def topic_timestamp_drift(ctx, t):
     #TODO: get msg_class, if msg_class has header, receive a message
     # and compare its time to ros time
     if 0:
-        rospy.Subscriber(t, msg_class)
+        sub = rospy.Subscriber(t, msg_class)
 
 #TODO: these are mainly future enhancements. It's unclear to me whether or not this will be
 #useful as most of the generic rules are capable of targeting these problems as well.

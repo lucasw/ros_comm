@@ -58,7 +58,7 @@ def callback(data):
     
 def listener():
     rospy.init_node("listenerpublisher")
-    rospy.Subscriber("chatter", String, callback)
+    sub = rospy.Subscriber("chatter", String, callback)
     rospy.spin()
         
 if __name__ == '__main__':

@@ -165,7 +165,7 @@ class RosConsoleEcho(object):
         self._level_string_map = {getattr(Log, level): self._stringify(level) for level in self.LEVEL_COLOR.keys()}
 
         callback = self._once_callback if options.once else self._callback
-        rospy.Subscriber(options.topic, Log, callback)
+        self._sub = rospy.Subscriber(options.topic, Log, callback)
 
     def _stringify(self, level):
         string = level.ljust(RosConsoleEcho.LEVEL_MAX_LENGTH)

@@ -72,10 +72,10 @@ def test_node():
     header_out = rospy.Publisher("test_header_out", test_rosmaster.msg.TestHeader, queue_size=0)
 
     #required subs
-    rospy.Subscriber("test_string_in", test_rosmaster.msg.TestString, chain_callback(string_out))
-    rospy.Subscriber("test_primitives_in", test_rosmaster.msg.TestPrimitives, chain_callback(primitives_out))
-    rospy.Subscriber("test_arrays_in", test_rosmaster.msg.TestArrays, chain_callback(arrays_out))
-    rospy.Subscriber("test_header_in", test_rosmaster.msg.TestHeader, chain_callback(header_out))
+    sub0 = rospy.Subscriber("test_string_in", test_rosmaster.msg.TestString, chain_callback(string_out))
+    sub1 = rospy.Subscriber("test_primitives_in", test_rosmaster.msg.TestPrimitives, chain_callback(primitives_out))
+    sub2 = rospy.Subscriber("test_arrays_in", test_rosmaster.msg.TestArrays, chain_callback(arrays_out))
+    sub3 = rospy.Subscriber("test_header_in", test_rosmaster.msg.TestHeader, chain_callback(header_out))
      
     # subscription with no publisher
     probe_in = rospy.Subscriber("probe_topic", test_rosmaster.msg.TestString)
