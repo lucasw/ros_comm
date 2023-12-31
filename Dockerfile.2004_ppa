@@ -67,7 +67,6 @@ RUN which catkin
 RUN catkin --version
 
 RUN source /opt/ros/noetic/setup.bash && which catkin_make
-RUN dpkg -S /opt/ros/noetic/bin/catkin_make
 # RUN source /opt/ros/noetic/setup.bash && catkin_make --version
 
 # get packages and build
@@ -75,6 +74,8 @@ ENV WS=/base_catkin_ws/src
 RUN mkdir $WS -p
 WORKDIR $WS
 COPY . $WS
+
+RUN dpkg -S /opt/ros/noetic/bin/catkin_make
 
 # ENV ROS_DISTRO="noetic"
 RUN echo $CMAKE_PREFIX_PATH
@@ -90,6 +91,8 @@ RUN source devel/setup.bash && catkin_make --cmake-args test
 # RUN source devel/setup.bash && catkin_make run_tests
 # RUN source devel/setup.bash && catkin_test_results
 # RUN cat build/test_results/roswtf/rosunit-roswtf_command_line_online.xml
+
+RUN dpkg -S /opt/ros/noetic/bin/catkin_make
 
 # make 'source' work
 SHELL ["/bin/bash", "-c"]
