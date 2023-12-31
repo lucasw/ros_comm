@@ -304,6 +304,7 @@ class _TopicImpl(object):
 
     def __del__(self):
         # very similar to close(), but have to be more careful in a __del__ what we call
+        print("topicimpl closing")
         if self.closed:
             return
         if self.connections is not None:
@@ -599,6 +600,10 @@ class Subscriber(Topic):
             self.callback = self.callback_args = None
             super(Subscriber, self).unregister()
 
+    def __del__(self):
+        print("sub del")
+        self.unregister()
+
 class _SubscriberImpl(_TopicImpl):
     """
     Underlying L{_TopicImpl} implementation for subscriptions.
@@ -625,7 +630,7 @@ class _SubscriberImpl(_TopicImpl):
 
         from rospy.client import get_zenoh_session
         zenoh_key = self.resolved_name.lstrip("/")
-        rospy.loginfo(f"{self.resolved_name} -> {zenoh_key}")
+        rospy.loginfo(f"subscriber {self.resolved_name} -> {zenoh_key}")
         # TODO(lucasw) okay for multiple subscribers in same node on same topic?
         self.zenoh_sub = get_zenoh_session().declare_subscriber(zenoh_key, self.zenoh_listener,
                                                                 reliability=Reliability.RELIABLE())
@@ -923,7 +928,7 @@ class _PublisherImpl(_TopicImpl):
         from rospy.client import get_zenoh_session
         # TODO(lucasw) get full topic
         zenoh_key = self.resolved_name.lstrip("/")
-        rospy.loginfo(f"{self.resolved_name} -> {zenoh_key}")
+        rospy.loginfo(f"publisher {self.resolved_name} -> {zenoh_key}")
         self.zenoh_pub = get_zenoh_session().declare_publisher(zenoh_key)
 
         self.publock = threading.RLock() #for acquire()/release
