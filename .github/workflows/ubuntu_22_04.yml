@@ -149,6 +149,8 @@ jobs:
 
       - name: get test results
         run: |
+          cd catkin_make_ws
+          source devel/setup.bash
           catkin_test_results
 
       - name: tar up install_catkin_ws
