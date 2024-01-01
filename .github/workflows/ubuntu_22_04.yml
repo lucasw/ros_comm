@@ -133,15 +133,22 @@ jobs:
           echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$DEST:$DEST/lib/cmake" >> $GITHUB_ENV
           catkin build --no-status
 
-      - name: run tests with catkin_make
+      - name: build with catkin_make
         run: |
           # TODO(lucasw) catkin_make works better for test output
           mkdir catkin_make_ws
           cd catkin_make_ws
           ln -s ../install_catkin_ws/src
           catkin_make
+
+      - name: run tests with catkin_make
+        run: |
+          cd catkin_make_ws
           source devel/setup.bash
           catkin_make run_tests
+
+      - name: get test results
+        run: |
           catkin_test_results
 
       - name: tar up install_catkin_ws
