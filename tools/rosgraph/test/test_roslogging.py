@@ -116,7 +116,7 @@ try:
                 'rosout',
                 # TODO(lucasw) not sure what this ought to be, but is breaking test as it was
                 '\S*',  # re.escape(this_file),
-                '[0-9]*',
+                '\s*[0-9]*',
                 function,
                 # depending if rospy.get_name() is available
                 '(/unnamed|<unknown_node_name>)',
