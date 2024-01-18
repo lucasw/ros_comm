@@ -67,5 +67,8 @@ class PythonPathOverride:
         self.dir.cleanup()
 
 
-with PythonPathOverride():
+# this fails inside venvs when tests have dependencies only inside the venvs, so disable it
+# https://github.com/ros/ros_comm/issues/2149
+# with PythonPathOverride():
+if True:
     rostestmain()
