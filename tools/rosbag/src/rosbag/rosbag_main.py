@@ -190,7 +190,7 @@ def info_cmd(argv):
         except (ROSBagEncryptNotSupportedException, ROSBagEncryptException) as ex:
             print('ERROR: %s' % str(ex), file=sys.stderr)
         except ROSBagUnindexedException as ex:
-            print('ERROR bag unindexed: %s.  Run rosbag reindex.' % arg,
+            print('ERROR bag unindexed: "%s".  Run rosbag reindex.' % arg,
                   file=sys.stderr)
             sys.exit(1)
         except ROSBagException as ex:
@@ -365,7 +365,7 @@ The following variables are available:
         print('ERROR: %s' % str(ex), file=sys.stderr)
         return
     except ROSBagUnindexedException as ex:
-        print('ERROR bag unindexed: %s.  Run rosbag reindex.' % inbag_filename, file=sys.stderr)
+        print('ERROR bag unindexed: "%s".  Run rosbag reindex.' % inbag_filename, file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -465,7 +465,7 @@ def fix_cmd(argv):
         print('ERROR: %s' % str(ex), file=sys.stderr)
         return
     except ROSBagUnindexedException as ex:
-        print('ERROR bag unindexed: %s.  Run rosbag reindex.' % inbag_filename,
+        print('ERROR bag unindexed: "%s".  Run rosbag reindex.' % inbag_filename,
               file=sys.stderr)
         sys.exit(1)
 
@@ -516,7 +516,7 @@ def check_cmd(argv):
         print('ERROR: %s' % str(ex), file=sys.stderr)
         return
     except ROSBagUnindexedException as ex:
-        print('ERROR bag unindexed: %s.  Run rosbag reindex.' % args[0], file=sys.stderr)
+        print('ERROR bag unindexed: "%s".  Run rosbag reindex.' % args[0], file=sys.stderr)
         sys.exit(1)
 
     mm = MessageMigrator(args[1:] + append_rule, not options.noplugins)
@@ -673,7 +673,7 @@ def bag_op(inbag_filenames, allow_unindexed, open_inbag, copy_fn, op, output_dir
             try:
                 inbag = Bag(inbag_filename, 'r', allow_unindexed=allow_unindexed)
             except ROSBagUnindexedException:
-                print('ERROR bag unindexed: %s.  Run rosbag reindex.' % inbag_filename, file=sys.stderr)
+                print('ERROR bag unindexed: "%s".  Run rosbag reindex.' % inbag_filename, file=sys.stderr)
                 continue
             except (ROSBagException, IOError) as ex:
                 print('ERROR reading %s: %s' % (inbag_filename, str(ex)), file=sys.stderr)
@@ -699,7 +699,7 @@ def bag_op(inbag_filenames, allow_unindexed, open_inbag, copy_fn, op, output_dir
             
             if not force and os.path.exists(backup_filename):
                 if not quiet:
-                    print('Skipping %s. Backup path %s already exists.' % (inbag_filename, backup_filename), file=sys.stderr)
+                    print('Skipping "%s". Backup path %s already exists.' % (inbag_filename, backup_filename), file=sys.stderr)
                 continue
             
             try:
