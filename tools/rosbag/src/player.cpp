@@ -335,7 +335,7 @@ void Player::publish() {
 
         // publishing clock for a while more before looping, let queues empty and tfs expire
         // TODO(lucasw) make this an option amount
-        const float extra_loop_time = 12.0;
+        const float extra_loop_time = 2.0;
         doKeepAlive(extra_loop_time);
         printf("[LOOP %03d\n]", count++);
     }
