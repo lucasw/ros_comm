@@ -12,7 +12,7 @@ function(add_rostest file)
   set(ROSTEST_EXE "${PYTHON_EXECUTABLE} @(PROJECT_SOURCE_DIR)/scripts/rostest")
 @[else]@
   # bin in installspace
-  set(ROSTEST_EXE "${PYTHON_EXECUTABLE} ${rostest_DIR}/../../../@(CATKIN_GLOBAL_BIN_DESTINATION)/rostest")
+  set(ROSTEST_EXE "${PYTHON_EXECUTABLE} @(CMAKE_INSTALL_PREFIX)/@(CATKIN_GLOBAL_BIN_DESTINATION)/rostest")
 @[end if]@
 
   cmake_parse_arguments(_rostest "" "WORKING_DIRECTORY" "ARGS;DEPENDENCIES" ${ARGN})
