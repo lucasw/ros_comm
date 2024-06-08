@@ -231,7 +231,7 @@ def createUnitTest(pkg, test_file, reuse_master=False, clear=False, results_base
     # pass in config to class as a property so that test_parent can be initialized
     classdict = { 'setUp': setUp, 'tearDown': tearDown, 'config': config,
                   'test_parent': None, 'test_file': test_file,
-                  'reuse_master': reuse_master, 'clear': clear }
+                  'reuse_master': reuse_master, 'clear': clear, 'assert_': unittest.TestCase.assertTrue }
     
     # add in the tests
     testNames = []
