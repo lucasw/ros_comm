@@ -67,6 +67,7 @@ class TestRostopicOnline(unittest.TestCase):
         output = Popen([cmd, '-h'], stdout=PIPE).communicate()[0].decode()
         self.assert_('Options' in output)
             
+    @unittest.skip("fails on IPV6-only buildd")
     def test_offline(self):
         # this test is disabled for now; now that test_roswtf is part
         # of ros_comm, the tricks before that were used no longer work

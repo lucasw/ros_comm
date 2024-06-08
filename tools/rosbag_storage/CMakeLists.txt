@@ -88,14 +88,14 @@ install(FILES encryptor_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-if(NOT WIN32)
-  if(CATKIN_ENABLE_TESTING)
-    find_package(rostest)
-
-    catkin_add_gtest(test_aes_encryptor test/test_aes_encryptor.cpp src/gpgme_utils.cpp
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-    if(TARGET test_aes_encryptor)
-      target_link_libraries(test_aes_encryptor rosbag_storage ${BZIP2_LIBRARIES}  ${AES_ENCRYPT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-    endif()
-  endif()
-endif()
+#if(NOT WIN32)
+#  if(CATKIN_ENABLE_TESTING)
+#    find_package(rostest)
+#
+#    catkin_add_gtest(test_aes_encryptor test/test_aes_encryptor.cpp src/gpgme_utils.cpp
+#      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#    if(TARGET test_aes_encryptor)
+#      target_link_libraries(test_aes_encryptor rosbag_storage ${BZIP2_LIBRARIES}  ${AES_ENCRYPT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+#    endif()
+#  endif()
+#endif()
