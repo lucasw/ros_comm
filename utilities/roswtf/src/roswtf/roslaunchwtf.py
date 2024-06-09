@@ -77,7 +77,8 @@ def roslaunch_duplicate_node_check(ctx):
 
 def pycrypto_check(ctx):
     try:
-        import Crypto
+        # TODO(lucasw) this used to be 'Crypto', but elsewhere only Cryptodome is used
+        import Cryptodome
     except ImportError as e:
         return True
 
