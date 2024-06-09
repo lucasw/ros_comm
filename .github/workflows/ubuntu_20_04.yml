@@ -64,7 +64,6 @@ jobs:
           sudo apt-get install -yqq python3-catkin-pkg
           sudo apt-get install -yqq python3-catkin-tools
           sudo apt-get install -yqq python3-rosdep
-          sudo apt-get install -yqq python3-rosdep2
           sudo apt-get install -yqq python3-rospkg
           sudo apt-get install -yqq python3-wstool
           sudo apt-get install -yqq python3-osrf-pycommon
