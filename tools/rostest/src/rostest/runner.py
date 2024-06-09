@@ -161,7 +161,8 @@ def rostestRunner(test, test_pkg, results_base_dir=None):
             if not _textMode or timeout_failure:
                 
                 if not timeout_failure:
-                    self.assertTrue(os.path.isfile(test_file), "test [%s] did not generate test results"%test_name)
+                    self.assertTrue(os.path.isfile(test_file),
+                                    f"test [{test_name}] did not generate test results [{test_file}]")
                     printlog("test [%s] results are in [%s]", test_name, test_file)
                     results = rosunit.junitxml.read(test_file, test_name)
                     test_fail = results.num_errors or results.num_failures
