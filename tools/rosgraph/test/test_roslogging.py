@@ -39,7 +39,8 @@ except ImportError:
 import sys
 
 import re
-from nose.tools import assert_regexp_matches
+# TODO(lucasw) deprecated?  Can't find much about this
+# from nose.tools import assert_regexp_matches
 import rosgraph.roslogging
 
 
@@ -125,7 +126,10 @@ try:
             ])
             text = f"{loc} {function}\nexpected: {expected_log_out}\nactual:   {log_out}\n{log_outs}"
             # TODO(lucasw) if there is a mismatch the assert isn't very helpful in where it is
-            assert_regexp_matches(log_out, expected_log_out, text)
+            # assert_regexp_matches(log_out, expected_log_out, text)
+            prog = re.compile(expected_log_out)
+            result = prog.match(log_out)
+            assert result  # True(result, "matched")
 
 finally:
 
