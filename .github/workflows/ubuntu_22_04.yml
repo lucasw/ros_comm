@@ -74,6 +74,7 @@ jobs:
 
       - name: Install ROS additional packages with rosdep
         run: |
+          mkdir $ROS_ROOT -p
           cd install_catkin_ws
           # rosdep install --from-paths src --ignore-src -r -s  # do a dry-run first
           # rosdep install --from-paths src --ignore-src -r -y
