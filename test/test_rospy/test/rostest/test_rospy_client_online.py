@@ -101,17 +101,17 @@ class TestRospyClientOnline(unittest.TestCase):
             
             rospy.logwarn("test 2")
             lerr_last = lerr.getvalue().splitlines()[-1]
-            self.assertTrue("[WARN]" in lerr_last)
+            self.assertTrue("[W]" in lerr_last)
             self.assertTrue("test 2" in lerr_last)
 
             rospy.logerr("test 3")
             lerr_last = lerr.getvalue().splitlines()[-1]
-            self.assertTrue("[ERROR]" in lerr_last)
+            self.assertTrue("[E]" in lerr_last)
             self.assertTrue("test 3" in lerr_last)
 
             rospy.logfatal("test 4")
             lerr_last = lerr.getvalue().splitlines()[-1]
-            self.assertTrue("[FATAL]" in lerr_last)
+            self.assertTrue("[F]" in lerr_last)
             self.assertTrue("test 4" in lerr_last)
 
             # logXXX_once
@@ -307,17 +307,17 @@ class TestRospyClientOnline(unittest.TestCase):
             
             rospy.logwarn("test child logger 2", logger_name="log2")
             lerr_last = lerr.getvalue().splitlines()[-1]
-            self.assertTrue("[WARN]" in lerr_last)
+            self.assertTrue("[W]" in lerr_last)
             self.assertTrue("test child logger 2" in lerr_last)
 
             rospy.logerr("test child logger 3", logger_name="log3")
             lerr_last = lerr.getvalue().splitlines()[-1]
-            self.assertTrue("[ERROR]" in lerr_last)
+            self.assertTrue("[E]" in lerr_last)
             self.assertTrue("test child logger 3" in lerr_last)
 
             rospy.logfatal("test child logger 4", logger_name="log4")
             lerr_last = lerr.getvalue().splitlines()[-1]
-            self.assertTrue("[FATAL]" in lerr_last)
+            self.assertTrue("[F]" in lerr_last)
             self.assertTrue("test child logger 4" in lerr_last)
 
         finally:
