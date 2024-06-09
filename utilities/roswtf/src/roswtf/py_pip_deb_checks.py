@@ -52,7 +52,8 @@ if sys.version_info[0] == 3:
 py_to_deb_core_packages = {
     'catkin_pkg': '%s-catkin-pkg' % python_prefix,
     'rospkg': '%s-rospkg' % python_prefix,
-    'rosdep2': '%s-rosdep' % python_prefix,
+    # TODO(lucasw) this fails in 24.04, there is no python3-rosdep2 it is built from source
+    # 'rosdep2': '%s-rosdep' % python_prefix,
 }
 # optional ROS python packages and their corresponding .deb packages
 py_to_deb_optional_packages = {

@@ -117,6 +117,7 @@ class TestRoswtfOffline(unittest.TestCase):
         self._check_output(output, cmds)
 
     def _check_output(self, output, cmds):
+        # TODO(lucasw) this is failing in 20.04 CI currently
         # do both a positive and negative test
         self.assertTrue(
             'No errors or warnings' in output or 'Found 1 error' in output,
