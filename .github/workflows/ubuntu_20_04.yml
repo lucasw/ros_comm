@@ -109,6 +109,7 @@ jobs:
         run: |
           cd catkin_make_ws
           source devel/setup.bash
+          which roswtf
           roswtf
 
       - name: run tests with catkin_make
