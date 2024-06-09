@@ -81,13 +81,13 @@ class TestTopicStatistics(unittest.TestCase):
     def test_frequencies(self):
         sub = rospy.Subscriber('/statistics', TopicStatistics, self.new_msg)
 
-        self.assertTrueeventually(
+        self.assert_eventually(
             lambda: '/very_fast_chatter' in self.topic_statistic_msg_map)
-        self.assertTrueeventually(
+        self.assert_eventually(
             lambda: '/fast_chatter' in self.topic_statistic_msg_map)
-        self.assertTrueeventually(
+        self.assert_eventually(
             lambda: '/slow_chatter' in self.topic_statistic_msg_map)
-        self.assertTrueeventually(
+        self.assert_eventually(
             lambda: '/very_slow_chatter' in self.topic_statistic_msg_map,
             timeout=rospy.Duration(10.0))
 
