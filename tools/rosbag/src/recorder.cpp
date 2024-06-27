@@ -36,6 +36,8 @@
 
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <boost/format/group.hpp>
 // Boost filesystem v3 is default in 1.46.0 and above
 // Fallback to original posix code (*nix only) if this is not true
 #if BOOST_FILESYSTEM_VERSION < 3
@@ -399,8 +401,9 @@ void Recorder::updateFilenames() {
         parts.push_back(prefix);
     if (options_.append_date)
         parts.push_back(timeToStr(ros::Time::now()));
-    if (options_.split)
-        parts.push_back(boost::lexical_cast<string>(split_count_));
+    if (options_.split) {
+        parts.push_back((boost::format("%u") % boost::io::group(std::setw(4), std::setfill('0'), split_count_)).str());
+    }
 
     if (parts.size() == 0)
     {
