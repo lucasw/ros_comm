@@ -337,7 +337,7 @@ void Player::publish() {
         // TODO(lucasw) make this an option amount
         const float extra_loop_time = 2.0;
         doKeepAlive(extra_loop_time);
-        printf("[LOOP %03d\n]", count++);
+        printf("[LOOP %03lu\n]", count++);
     }
 
     ros::shutdown();
